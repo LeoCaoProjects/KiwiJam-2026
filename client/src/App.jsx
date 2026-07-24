@@ -1,78 +1,117 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as THREE from "three";
-import { joinGameRoom, SERVER_URL } from "./network/colyseusClient.js";
+import LobbyScreen from "./screens/LobbyScreen.jsx";
+import GameScreen from "./screens/GameScreen.jsx";
+import { createLobby, joinLobby, SERVER_URL } from "./network/colyseusClient.js";
+
+function getPlayers(room) {
+  const players = [];
+
+  room.state.players.forEach((player, sessionId) => {
+    players.push({
+      sessionId,
+      name: player.name,
+      slot: player.slot,
+      x: player.x,
+      y: player.y,
+    });
+  });
+
+  return players.sort((a, b) => a.slot - b.slot);
+}
 
 export default function App() {
-  const canvasRef = useRef(null);
-  const [threeStatus, setThreeStatus] = useState("checking");
-  const [serverStatus, setServerStatus] = useState("checking");
-  const [serverDetail, setServerDetail] = useState(`Trying ${SERVER_URL}`);
+  const roomRef = useRef(null);
+  const [name, setName] = useState("");
+  const [lobbyCode, setLobbyCode] = useState("");
+  const [room, setRoom] = useState(null);
+  const [players, setPlayers] = useState([]);
+  const [status, setStatus] = useState(`Server: ${SERVER_URL}`);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
-
-    renderer.setSize(320, 180, false);
-    renderer.setClearColor(0x050505, 1);
-    camera.position.z = 3;
-
-    const triangle = new THREE.Mesh(
-      new THREE.CircleGeometry(0.75, 3),
-      new THREE.MeshBasicMaterial({ color: 0x7dd3fc, wireframe: true })
-    );
-
-    scene.add(triangle);
-    renderer.render(scene, camera);
-    setThreeStatus("connected");
-
-    return () => {
-      renderer.dispose();
-      triangle.geometry.dispose();
-      triangle.material.dispose();
-    };
+    return () => roomRef.current?.leave();
   }, []);
 
-  useEffect(() => {
-    let room;
-    let cancelled = false;
+  function connectToRoom(nextRoom) {
+    roomRef.current = nextRoom;
+    setRoom(nextRoom);
+    setLobbyCode(nextRoom.roomId);
+    setStatus("Connected to lobby.");
 
-    async function checkServer() {
-      try {
-        room = await joinGameRoom("Setup Test");
-        if (cancelled) {
-          room.leave();
-          return;
-        }
+    const refreshPlayers = () => setPlayers(getPlayers(nextRoom));
 
-        setServerStatus("connected");
-        setServerDetail(`Joined game_room as ${room.sessionId}`);
-      } catch (error) {
-        setServerStatus("not connected");
-        setServerDetail(error?.message || "Could not join game_room");
+    nextRoom.state.players.onAdd((player) => {
+      player.onChange(refreshPlayers);
+      refreshPlayers();
+    });
+
+    nextRoom.state.players.onRemove(refreshPlayers);
+    refreshPlayers();
+
+    nextRoom.onLeave(() => {
+      if (roomRef.current === nextRoom) {
+        setStatus("Disconnected from lobby.");
       }
+    });
+  }
+
+  async function create() {
+    setStatus("Creating lobby...");
+
+    try {
+      const nextRoom = await createLobby(name.trim());
+      connectToRoom(nextRoom);
+    } catch (error) {
+      setStatus(error.message || "Could not create lobby.");
+    }
+  }
+
+  async function join() {
+    if (!lobbyCode.trim()) {
+      setStatus("Enter a lobby code first.");
+      return;
     }
 
-    checkServer();
+    setStatus("Joining lobby...");
 
-    return () => {
-      cancelled = true;
-      room?.leave();
-    };
-  }, []);
+    try {
+      const nextRoom = await joinLobby(lobbyCode, name.trim());
+      connectToRoom(nextRoom);
+    } catch (error) {
+      setStatus(error.message || "Could not join that lobby.");
+    }
+  }
+
+  async function leave() {
+    const activeRoom = roomRef.current;
+
+    roomRef.current = null;
+    setRoom(null);
+    setPlayers([]);
+    setStatus("Left lobby.");
+
+    await activeRoom?.leave();
+  }
+
+  if (room) {
+    return (
+      <GameScreen
+        room={room}
+        players={players}
+        status={status}
+        onLeave={leave}
+      />
+    );
+  }
 
   return (
-    <main>
-      <h1>Setup Test</h1>
-
-      <p>React: connected</p>
-      <p>Three.js: {threeStatus}</p>
-      <p>Server: {serverStatus}</p>
-      <p>{serverDetail}</p>
-
-      <p>This canvas is the Three.js component.</p>
-      <canvas ref={canvasRef} width="320" height="180" />
-    </main>
+    <LobbyScreen
+      name={name}
+      lobbyCode={lobbyCode}
+      status={status}
+      onNameChange={setName}
+      onLobbyCodeChange={setLobbyCode}
+      onCreate={create}
+      onJoin={join}
+    />
   );
 }

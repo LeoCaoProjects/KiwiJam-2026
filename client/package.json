@@ -1,7 +1,7 @@
 {
   "name": "kiwijam-client",
   "version": "1.0.0",
-  "description": "React + Three.js client for Kiwijam game",
+  "description": "React + Phaser client for Kiwijam game",
   "type": "module",
   "scripts": {
     "dev": "vite --host --port 5173",
@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "colyseus.js": "^0.15.0",
+    "phaser": "^4.2.1",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "three": "^0.164.0"
+    "react-dom": "^18.3.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.0",

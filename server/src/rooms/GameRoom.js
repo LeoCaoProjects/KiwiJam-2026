@@ -3,38 +3,20 @@ const { GameState } = require("./schema/GameState");
 const { Player } = require("./schema/Player");
 
 class GameRoom extends Room {
-  onCreate(options) {
+  onCreate() {
     this.setState(new GameState());
-    this.maxClients = 16;
-
-    // Player sends movement updates
-    this.onMessage("move", (client, data) => {
-      const player = this.state.players.get(client.sessionId);
-      if (!player) return;
-
-      player.x = data.x;
-      player.y = data.y;
-      player.z = data.z;
-      player.rotationY = data.rotationY ?? player.rotationY;
-    });
-
-    // Basic chat, broadcasts to everyone in the room
-    this.onMessage("chat", (client, text) => {
-      const player = this.state.players.get(client.sessionId);
-      const name = player?.name || "Player";
-      this.broadcast("chat", `${name}: ${text}`);
-    });
+    this.maxClients = 2;
 
     console.log("GameRoom created:", this.roomId);
   }
 
   onJoin(client, options) {
     const player = new Player();
-    player.name = options?.name || `Player ${client.sessionId.slice(0, 4)}`;
+    player.slot = this.state.players.size + 1;
+    player.name = options?.name || `Player ${player.slot}`;
 
-    // simple spread-out spawn so players don't stack on top of each other
-    player.x = Math.random() * 10 - 5;
-    player.z = Math.random() * 10 - 5;
+    player.x = player.slot === 1 ? -3 : 3;
+    player.y = 0;
 
     this.state.players.set(client.sessionId, player);
     console.log(`${player.name} joined ${this.roomId}`);
