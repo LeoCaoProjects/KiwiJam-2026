@@ -18,9 +18,22 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    this.createParticleDotTexture();
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keys = this.input.keyboard.addKeys("W,A,S,D");
     this.drawPlayers();
+  }
+
+  createParticleDotTexture() {
+    if (this.textures.exists("particleDot")) {
+      return;
+    }
+
+    const dot = this.make.graphics({ add: false });
+    dot.fillStyle(0xffffff, 1);
+    dot.fillCircle(4, 4, 4);
+    dot.generateTexture("particleDot", 8, 8);
+    dot.destroy();
   }
 
   update(time, delta) {

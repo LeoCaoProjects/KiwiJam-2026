@@ -8,7 +8,6 @@ export default class Player {
     this.sprite = scene.add.sprite(0, 0, texture);
 
     // Particle emitter, attached to follow the sprite
-    /*
     this.emitter = scene.add.particles(0, 0, "particleTexture", {
       speed: { min: 20, max: 50 },
       scale: { start: 0.5, end: 0 },
@@ -16,8 +15,8 @@ export default class Player {
       lifespan: 400,
       frequency: 50, // emit every 50ms; set to -1 for a manual burst-only emitter
     });
-    */
 
+    /*
     this.emitter = scene.add.particles(0, 0, "particleTexture", {
         speed: { min: 100, max: 150 },
         angle: { min: -85, max: -95 },
@@ -29,7 +28,7 @@ export default class Player {
         
         color: [ 0xffff00, 0xffa500, 0xff0000 ] // Yellow -> Orange -> Red
     });
-
+    */
 
     this.emitter.startFollow(this.sprite);
 

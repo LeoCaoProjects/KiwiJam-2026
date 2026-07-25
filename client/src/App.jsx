@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import IntroVideo from "./screens/IntroVideo.jsx";
 import LobbyScreen from "./screens/LobbyScreen.jsx";
 import GameScreen from "./screens/GameScreen.jsx";
 import { createLobby, joinLobby, SERVER_URL } from "./network/colyseusClient.js";
@@ -21,11 +22,30 @@ function getPlayers(room) {
 
 export default function App() {
   const roomRef = useRef(null);
+  const audioRef = useRef(null);
+  const musicStartedRef = useRef(false);
+
+  const [showIntro, setShowIntro] = useState(true);
   const [name, setName] = useState("");
   const [lobbyCode, setLobbyCode] = useState("");
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
   const [status, setStatus] = useState(`Server: ${SERVER_URL}`);
+
+  // Start music on the very first click anywhere in the app
+  useEffect(() => {
+    const startMusicOnce = () => {
+      if (!musicStartedRef.current && audioRef.current) {
+        audioRef.current.volume = 0.1;
+        audioRef.current.play();
+        musicStartedRef.current = true;
+      }
+      window.removeEventListener("click", startMusicOnce);
+    };
+
+    window.addEventListener("click", startMusicOnce);
+    return () => window.removeEventListener("click", startMusicOnce);
+  }, []);
 
   useEffect(() => {
     return () => roomRef.current?.leave();
@@ -92,26 +112,47 @@ export default function App() {
     await activeRoom?.leave();
   }
 
+  const persistentAudio = (
+    <audio ref={audioRef} loop>
+      <source src="/assets/audio/MAIN/Menu Loop.wav" type="audio/wav" />
+    </audio>
+  );
+
+  if (showIntro) {
+    return (
+      <>
+        {persistentAudio}
+        <IntroVideo onFinish={() => setShowIntro(false)} />
+      </>
+    );
+  }
+
   if (room) {
     return (
-      <GameScreen
-        room={room}
-        players={players}
-        status={status}
-        onLeave={leave}
-      />
+      <>
+        {persistentAudio}
+        <GameScreen
+          room={room}
+          players={players}
+          status={status}
+          onLeave={leave}
+        />
+      </>
     );
   }
 
   return (
-    <LobbyScreen
-      name={name}
-      lobbyCode={lobbyCode}
-      status={status}
-      onNameChange={setName}
-      onLobbyCodeChange={setLobbyCode}
-      onCreate={create}
-      onJoin={join}
-    />
+    <>
+      {persistentAudio}
+      <LobbyScreen
+        name={name}
+        lobbyCode={lobbyCode}
+        status={status}
+        onNameChange={setName}
+        onLobbyCodeChange={setLobbyCode}
+        onCreate={create}
+        onJoin={join}
+      />
+    </>
   );
 }
