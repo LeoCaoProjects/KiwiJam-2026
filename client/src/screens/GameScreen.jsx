@@ -18,7 +18,7 @@ export default function GameScreen({ room, players, status, onLeave }) {
       </ul>
 
       <fieldset>
-        <PhaserGame players={players} />
+        <PhaserGame room={room} players={players} />
       </fieldset>
 
       <p>

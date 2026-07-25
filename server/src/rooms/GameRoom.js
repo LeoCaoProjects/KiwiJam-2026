@@ -7,6 +7,22 @@ class GameRoom extends Room {
     this.setState(new GameState());
     this.maxClients = 2;
 
+    this.onMessage("move", (client, position) => {
+      const player = this.state.players.get(client.sessionId);
+
+      if (!player) {
+        return;
+      }
+
+      if (Number.isFinite(position.x)) {
+        player.x = Math.max(-4.7, Math.min(4.7, position.x));
+      }
+
+      if (Number.isFinite(position.y)) {
+        player.y = Math.max(-2.7, Math.min(2.7, position.y));
+      }
+    });
+
     console.log("GameRoom created:", this.roomId);
   }
 
