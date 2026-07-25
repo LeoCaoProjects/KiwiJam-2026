@@ -25,6 +25,7 @@ export default function App() {
   const [lobbyCode, setLobbyCode] = useState("");
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
+  const [level, setLevel] = useState(0);
   const [status, setStatus] = useState(`Server: ${SERVER_URL}`);
 
   useEffect(() => {
@@ -35,9 +36,14 @@ export default function App() {
     roomRef.current = nextRoom;
     setRoom(nextRoom);
     setLobbyCode(nextRoom.roomId);
+    setLevel(0);
     setStatus("Connected to lobby.");
 
     const refreshPlayers = () => setPlayers(getPlayers(nextRoom));
+
+    nextRoom.onMessage("level", (nextLevel) => {
+      setLevel(nextLevel);
+    });
 
     nextRoom.state.players.onAdd((player) => {
       player.onChange(refreshPlayers);
@@ -87,6 +93,7 @@ export default function App() {
     roomRef.current = null;
     setRoom(null);
     setPlayers([]);
+    setLevel(0);
     setStatus("Left lobby.");
 
     await activeRoom?.leave();
@@ -97,7 +104,7 @@ export default function App() {
       <GameScreen
         room={room}
         players={players}
-        status={status}
+        level={level}
         onLeave={leave}
       />
     );

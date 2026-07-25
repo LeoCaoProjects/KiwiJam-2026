@@ -1,0 +1,34 @@
+{ "compressionlevel":-1,
+ "height":22,
+ "infinite":false,
+ "layers":[
+        {
+         "compression":"zlib",
+         "data":"eJztlGEKwyAMRqXD\/h3bCey6XcPe\/1alkMBHqLXIjLbkwQNBFB5oonMuklosoDbRWW9trFcP662P9ephvfWxXj2sN48nS7la70yWcrXeiSylt95X5szdenPcpXcUPmHtQe5NzS0P59k3rHvp\/Qp\/4Ifc5hT3pubWDMo7N1v2DicMQu7lfckjY8ve8AclU8JlR20CiG877Jjal5zp7OH\/lnp051Fri94VbrQxNg==",
+         "encoding":"base64",
+         "height":22,
+         "id":1,
+         "name":"Tile Layer 1",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":60,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":2,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tiledversion":"1.12.2",
+ "tileheight":32,
+ "tilesets":[
+        {
+         "firstgid":1,
+         "source":"../tilesets/combined_tileset.tsj"
+        }],
+ "tilewidth":32,
+ "type":"map",
+ "version":"1.10",
+ "width":60
+}
