@@ -1,14 +1,20 @@
 import Phaser from "phaser";
+import Player from "../objects/player.js";
+import character from "./character.png"; 
 
 export default class GameScene extends Phaser.Scene {
   constructor(room, players) {
     super("GameScene");
     this.room = room;
     this.players = players;
-    this.dots = new Map();
+    this.playerObjects = new Map(); // renamed from `dots` since these are Player instances now
     this.localX = null;
     this.localY = null;
     this.lastMoveSent = 0;
+  }
+
+  preload() {
+    this.load.image("player", character);
   }
 
   create() {
@@ -34,21 +40,10 @@ export default class GameScene extends Phaser.Scene {
     let moveX = 0;
     let moveY = 0;
 
-    if (this.cursors.left.isDown || this.keys.A.isDown) {
-      moveX = -1;
-    }
-
-    if (this.cursors.right.isDown || this.keys.D.isDown) {
-      moveX = 1;
-    }
-
-    if (this.cursors.up.isDown || this.keys.W.isDown) {
-      moveY = 1;
-    }
-
-    if (this.cursors.down.isDown || this.keys.S.isDown) {
-      moveY = -1;
-    }
+    if (this.cursors.left.isDown || this.keys.A.isDown) moveX = -1;
+    if (this.cursors.right.isDown || this.keys.D.isDown) moveX = 1;
+    if (this.cursors.up.isDown || this.keys.W.isDown) moveY = 1;
+    if (this.cursors.down.isDown || this.keys.S.isDown) moveY = -1;
 
     if (moveX === 0 && moveY === 0) {
       return;
@@ -58,10 +53,10 @@ export default class GameScene extends Phaser.Scene {
     this.localX = Phaser.Math.Clamp(this.localX + moveX * speed, -4.7, 4.7);
     this.localY = Phaser.Math.Clamp(this.localY + moveY * speed, -2.7, 2.7);
 
-    const dot = this.dots.get(this.room.sessionId);
+    const localPlayer = this.playerObjects.get(this.room.sessionId);
 
-    if (dot) {
-      dot.setPosition(this.toScreenX(this.localX), this.toScreenY(this.localY));
+    if (localPlayer) {
+      localPlayer.setLogicalPosition(this.localX, this.localY);
     }
 
     if (time - this.lastMoveSent >= 50) {
@@ -81,34 +76,26 @@ export default class GameScene extends Phaser.Scene {
   drawPlayers() {
     const connectedPlayers = new Set();
 
-    this.players.forEach((player) => {
-      connectedPlayers.add(player.sessionId);
+    this.players.forEach((playerState) => {
+      connectedPlayers.add(playerState.sessionId);
 
-      let dot = this.dots.get(player.sessionId);
+      let playerObj = this.playerObjects.get(playerState.sessionId);
 
-      if (!dot) {
-        dot = this.add.circle(0, 0, 8, 0x000000);
-        this.dots.set(player.sessionId, dot);
+      if (!playerObj) {
+        playerObj = new Player(this, playerState.sessionId, playerState.x, playerState.y);
+        this.playerObjects.set(playerState.sessionId, playerObj);
       }
 
-      if (player.sessionId !== this.room.sessionId || this.localX === null) {
-        dot.setPosition(this.toScreenX(player.x), this.toScreenY(player.y));
+      if (playerState.sessionId !== this.room.sessionId || this.localX === null) {
+        playerObj.setLogicalPosition(playerState.x, playerState.y);
       }
     });
 
-    this.dots.forEach((dot, sessionId) => {
+    this.playerObjects.forEach((playerObj, sessionId) => {
       if (!connectedPlayers.has(sessionId)) {
-        dot.destroy();
-        this.dots.delete(sessionId);
+        playerObj.destroy();
+        this.playerObjects.delete(sessionId);
       }
     });
-  }
-
-  toScreenX(x) {
-    return 160 + x * 30;
-  }
-
-  toScreenY(y) {
-    return 90 - y * 30;
   }
 }
