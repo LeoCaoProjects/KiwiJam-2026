@@ -1,0 +1,37 @@
+{
+ "compressionlevel": -1,
+ "height": 40,
+ "infinite": false,
+ "layers": [
+  {
+   "compression": "zlib",
+   "data": "eJztm8mO1DAQhg1iZ0CC28ChS8MOcwcOM2rWZjnABTgADwI8CPC280eDpVKNN1Kxk7b9S5+6nW67Iv+puJJOG9Pl0gE4nHsnury6BC6DHXBlRP/u77J1HzwAD8GjEf1b9/cMOAvOgfPgAri4oHivwQa8AW9HxGvd3z1wC9wGd8BdcK+ieK37uwbPwHPwArwEryJ9dsENcLNQPI1q9Fdbk8T0GDwBTzOMPbVq9Fdbk4Q0rJ+fwGfwxeRfr7Wq0V9tTRJS6fVTqxr9zam1Kbt+atX93V59AB/N8RphuS7a3d/tFV8rfOtG93e52vmHzVPb5qII3d/lKqWWowjd3+VKXge8A+/FdyhC97eMUs61Y0UBur9llPO6mQJ0f435Cr6B7xljrMzxfK8YNNHYFKD7a8wP8BP8yhgjZS3ViDy05q/9/ZXfG/gN/oC/ijHmvgdNHlrzV66Dsj1mjCXcgyYPh6YtfylCik6B047XOUUeWstfiqAZY04N8a2XZNr1l9euLlLk65vaP5fsPnCfa/dXPs/Wgr+c2v2VtRBFSNFG2T+X7D60lL/8vgIlkKr1RONMqSGu9VO+1qJrop3qq+V/NOVY2liclvKXBNJvfpxvFOO7ate5qNFfWUfxeooCcH/HyDWWr823lToWavHXd09J+uvL3zG5ayXHIg8lc7y29deXp3y7L78Grirj85h83JK5yqnt/Cyva1PqZu7DkP8aj31jy20Hns9yUZO/ZE7ObSivub/D+z1FfFcMudaW9pbvw7ZL/m4eq6tc/obmQf6nyZXrrjhzeCrj1+JvyjxKX1P9lf9p2nd8x8Zw1cgyZmgftdR4fSTnz7ZlPsu6MtVf1/MXUmROzq+rnZua/ZWvNl99fqb6myIy856LLS34a1mJz3zHwRTPOZCIQcY956FtU1Crvy7PYuutRCNaCDX6ewTt0rer",
+   "encoding": "base64",
+   "height": 40,
+   "id": 1,
+   "name": "Tile Layer 1",
+   "opacity": 1,
+   "type": "tilelayer",
+   "visible": true,
+   "width": 120,
+   "x": 0,
+   "y": 0
+  }
+ ],
+ "nextlayerid": 2,
+ "nextobjectid": 1,
+ "orientation": "orthogonal",
+ "renderorder": "right-down",
+ "tiledversion": "1.12.2",
+ "tileheight": 32,
+ "tilesets": [
+  {
+   "firstgid": 1,
+   "source": "../tilesets/combined_tileset.tsj"
+  }
+ ],
+ "tilewidth": 32,
+ "type": "map",
+ "version": "1.10",
+ "width": 120
+}

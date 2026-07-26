@@ -1,0 +1,37 @@
+{
+ "compressionlevel": -1,
+ "height": 22,
+ "infinite": false,
+ "layers": [
+  {
+   "compression": "zlib",
+   "data": "eJztmduO0zAQQE9X3cCCeIA3lktDw1XsO9etgIVdeIIn7iz8xoLgNwDxs1ApFsPU9rhRUirZRxolUuKp45NMXGcCTICaPNgFZj1u151Jot8xsAlUwDHgOLDV4ff6yqN5B7wHPhjnFb9+pkADXAauAFeBa0abE8DJHvKkcAR8Br4Y5xW/fh4AD4FHwB7wGHhitLkO3OghTwxXD74DP4CfRj3o4nE3A79d2AcOBsgrWbYe5P786pp6FtgGzv2n/lnIejACNox6kLtfXVNvAbeBO0ae88AF4OKAfbVIqUM5+q3FuOiaehd4Cbwy8szPuwfcH7CvFiljnqPf2H1/+Kc2/0rw+xp4A7wdoI+p7LcRo/hd5GPC/8qbbawTp9o4I/aL33+Zrxt8BT4ZeeoVroGl/k7jidz9nlbHj9r6/M3IM1vh9ab63fBE7n41h4nzYud3s43nwIuOfZJtXT5Jit9G1JTY+kROfisRjtR58fxaL7XrDTK6MH+P77T7bt1CYvmVbovfv36ll3Ebcl48juR51saBiKcd++RqKWLNQhKaI/vesdb6Yk5+RyLcWE3VdkvFUH2qPfsWsbXjXP3WgRgFQntfBvle1u9USfHbH3oMXKR6dzhvoXlVJWq/u0dC9d7yW3naUPx6CflN9e5w33CawHM9Vf9TJpHn3/Ir28nvIcXvIsv61eGYqdDo+yJWd31+K5XLIb+HxFwUv+vp141jo3I55PeQ4neRVfnVx2Pj4/O7J46H7otQXc7Z72+xm8d8",
+   "encoding": "base64",
+   "height": 22,
+   "id": 1,
+   "name": "Tile Layer 1",
+   "opacity": 1,
+   "type": "tilelayer",
+   "visible": true,
+   "width": 120,
+   "x": 0,
+   "y": 0
+  }
+ ],
+ "nextlayerid": 2,
+ "nextobjectid": 1,
+ "orientation": "orthogonal",
+ "renderorder": "right-down",
+ "tiledversion": "1.12.2",
+ "tileheight": 32,
+ "tilesets": [
+  {
+   "firstgid": 1,
+   "source": "../tilesets/combined_tileset.tsj"
+  }
+ ],
+ "tilewidth": 32,
+ "type": "map",
+ "version": "1.10",
+ "width": 120
+}

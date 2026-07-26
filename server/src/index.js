@@ -5,6 +5,7 @@ const { WebSocketTransport } = require("@colyseus/ws-transport");
 const { GameRoom } = require("./rooms/GameRoom");
 
 const port = Number(process.env.PORT || 2567);
+const host = process.env.SERVER_HOST || "0.0.0.0";
 
 const app = express();
 app.use(express.json());
@@ -22,5 +23,6 @@ const gameServer = new Server({
 
 gameServer.define("game_room", GameRoom);
 
-gameServer.listen(port);
-console.log(`Colyseus server listening on ws://localhost:${port}`);
+gameServer.listen(port, host).then(() => {
+  console.log(`Colyseus server listening on port ${port}`);
+});

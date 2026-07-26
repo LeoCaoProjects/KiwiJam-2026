@@ -2,6 +2,9 @@ const levelPairs = [
   ["Level_1A", "Level_1B"],
   ["Level_2A", "Level_2B"],
   ["Level_3A", "Level_3B"],
+  ["Level_4A", "Level_4B"],
+  ["Level_5A", "Level_5B"],
+  ["Level_6A", "Level_6B"],
 ];
 const tilesetKey = "combined-tileset";
 const mapOffsetY = 0;
@@ -11,6 +14,16 @@ const grassTopTiles = [
   10, 11, 12,
   13, 14, 15,
 ];
+const treeTiles = [
+  25, 26, 27, 28, 29, 30,
+  55, 56, 57, 58, 59, 60,
+  85, 86, 87, 88, 89, 90,
+  91, 92, 93, 94, 95, 96,
+  121, 122, 123, 124, 125, 126,
+  151, 152, 153, 154, 155, 156,
+];
+
+export const spikeTiles = [79, 80];
 
 function getLevelPair(level) {
   return levelPairs[level] || levelPairs[0];
@@ -29,6 +42,11 @@ export function preloadPlayground(scene, level) {
   scene.load.image(
     tilesetKey,
     "/assets/tilesets/combined_tileset.png"
+  );
+  scene.load.spritesheet(
+    "placedBlock",
+    "/assets/tilesets/combined_tileset.png",
+    { frameWidth: 32, frameHeight: 32 }
   );
 }
 
@@ -62,6 +80,7 @@ export function createPlayground(scene, level, playerSlot) {
     17,
     18,
     ...grassTopTiles,
+    ...treeTiles,
   ]);
   collisionWorld.layer.setVisible(false);
   visibleWorld.layer.setDepth(10);

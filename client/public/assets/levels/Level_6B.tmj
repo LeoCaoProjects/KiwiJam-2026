@@ -1,0 +1,37 @@
+{
+ "compressionlevel": -1,
+ "height": 22,
+ "infinite": false,
+ "layers": [
+  {
+   "compression": "zlib",
+   "data": "eJztm9tu00AQhieonMpJcAcIZTkUykG9BYRKw6kFegFXIAQ8CPAgwNsyK2fUZTKzO2tv7KTeX/ple51M1vF+3qMBhtd06AxAkwcXbNdZ/Fq0LU8bUrvo5+g9YT88pi3f175ftahN9Dn0efQF4fxX9Df0d2M8X3ZOo8+gz5bIYAuNjV8pbUhVfvvTNvo++gH6oXD+B/on+pcxni87t9C30XdKZLCFSvG7gd5Bn+qepdaq/I6PX1/uTkJT7lJ14T76AP0W/U44/xv9B/3X+Nu+7LxCv0a/sWc5Kbomax4c2PnVYvvnzxb6buJ7/H+25tOi48xvyG3l90hh/Ufl717LWGH9zEVt71DLKjt0TRbl8qvFDp9tse/R/7wF5dsdY+F3L/KdsfE7Q79Av4TudWGsDBPboZZVdnLawrn8TtAn2mQKjsaOyJO5c9oLMY2JXzo3dn77ErEdylJ2LGXb9zt93f4B/RF0FqntyvPgIt/h6tJPPoBFhr1L1cOV38pvn7KUHUtbmI+raYxJnFB7ge59ShS77TiVxDDVwzFZxvkqv5XfPmUpO5b6bqo4J5ZvHxxm5EfiKByjssYJmQpFvNJ2AmnOjyO/2hh05Xd4leI35/e6xor18XPmwlL8OsGp/EsxnZK+jvyGx5Xf4cXLjtTPXTV+Y+Jsx9azcI742MAEuvO7rvVvuI3xK52v/PYnXnb4+DR9xsHR2BTf5v6eY2kUx8/F+nGwzcyYMcXWs6TGzZzgFL98fv49NH0CLf0QFp8bfSvFr1YfV377FfUNN4I0zq8TvkdlNuwPhvs5ivUzaV52OzOmJn+dtJ4lXHfK85LTJlh2+2EIafymeK38Lle8fpSYy+GXj01RWo583cPntjlH+5kxNYXPBWldy5j49c+yi+hL0MzfXYGmveNd+e2my4Xi0NzNI7ZPonUPsfFTJ6Rpbb/YWqccWTmi5xG1I+hYW28a5lsa87L87lX0NfT1+XHqmndY3nheteOYUp+xxAjbTHydX+W3P8X6nNrYiXRek4ucW5as/PL5nK7rTS2/+xj9BP3UGFPLW4yfVH8hNf9umZ+PzWdZ+LXwPDZ+pfX02twl3SO6/9I9W1d+3dzaOxnh56Ty17YdYOHXj19/Qn9uGbPE+PM08ZnU+VS+Kr/tJD2PaZ+LzyVKZU6be+Tnd2Fx3InywmP2IWldpyQHZedeLPz68esbkPc+Nc+ftOVpqZhD8mvleWz80n94E/6/r1L/tA2/Wv1L/3Eo6hun1i9K47hcOe9D5shz3je/fvz6GeS9T83zJ215Wipm3/zSfuVXl3bd0r0owS+f0wu1p6Rzxd5PJJV8H5KrJL/U7tba3zT/9AWa96ktz6FV5ldru8f4leZ+K7+NYv8V16rwm3rH1msG5d6HlH7fQRl+U2rzHIr1d6VjSkvFrPyunpbJrxM+U4LfVZCDfvidQf5zSONXO6a0VMxV4DfWrh4jv/8A6R4TmA==",
+   "encoding": "base64",
+   "height": 22,
+   "id": 1,
+   "name": "Tile Layer 1",
+   "opacity": 1,
+   "type": "tilelayer",
+   "visible": true,
+   "width": 240,
+   "x": 0,
+   "y": 0
+  }
+ ],
+ "nextlayerid": 2,
+ "nextobjectid": 1,
+ "orientation": "orthogonal",
+ "renderorder": "right-down",
+ "tiledversion": "1.12.2",
+ "tileheight": 32,
+ "tilesets": [
+  {
+   "firstgid": 1,
+   "source": "../tilesets/combined_tileset.tsj"
+  }
+ ],
+ "tilewidth": 32,
+ "type": "map",
+ "version": "1.10",
+ "width": 240
+}

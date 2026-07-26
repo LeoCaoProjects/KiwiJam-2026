@@ -1,6 +1,13 @@
 import { Client } from "colyseus.js";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "ws://localhost:2567";
+const serverIp = import.meta.env.VITE_SERVER_IP?.trim();
+const serverPort = import.meta.env.VITE_SERVER_PORT || "2567";
+const serverHost = serverIp || "localhost";
+const serverProtocol =
+  window.location.protocol === "https:" ? "wss" : "ws";
+const SERVER_URL =
+  import.meta.env.VITE_SERVER_URL ||
+  `${serverProtocol}://${serverHost}:${serverPort}`;
 
 const client = new Client(SERVER_URL);
 

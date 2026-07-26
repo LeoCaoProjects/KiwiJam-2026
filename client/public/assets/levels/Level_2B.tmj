@@ -1,34 +1,37 @@
-{ "compressionlevel":-1,
- "height":22,
- "infinite":false,
- "layers":[
-        {
-         "compression":"zlib",
-         "data":"eJztlFEKgzAMQINDYV9DTxDddo16\/1uJkEII0W7QplXy4EE1rfBADQAQSCtWpjUBvLc03muH95bHe+3w3vJ4rx3eq9OTObhC70Lm4Aq9SOagtd5R2Ydw314NhPv1DsIXWyPZH\/gU1\/F8dGLrVno\/wi8TyfeB+574T+P35TN3a\/Z2P4hCOZ\/JOH8krNmLGZ0TrorWIJO\/26iYmv\/T2cL3W8Kz1hq9G7qWNBA=",
-         "encoding":"base64",
-         "height":22,
-         "id":1,
-         "name":"Tile Layer 1",
-         "opacity":1,
-         "type":"tilelayer",
-         "visible":true,
-         "width":60,
-         "x":0,
-         "y":0
-        }],
- "nextlayerid":2,
- "nextobjectid":1,
- "orientation":"orthogonal",
- "renderorder":"right-down",
- "tiledversion":"1.12.2",
- "tileheight":32,
- "tilesets":[
-        {
-         "firstgid":1,
-         "source":"../tilesets/combined_tileset.tsj"
-        }],
- "tilewidth":32,
- "type":"map",
- "version":"1.10",
- "width":60
+{
+ "compressionlevel": -1,
+ "height": 22,
+ "infinite": false,
+ "layers": [
+  {
+   "compression": "zlib",
+   "data": "eJzt1FsKwyAQBdBLaPr4aWk3YKD5bJcQ97+sIIwwSK2j0I4DDlx8xGgOQjwAT9EoX5mt0Nacp1HDO7zDO7zDWz5Po6x7D5XrLXuD9VlptuwN1olaaVn2BqujVlo9eO8NVpA1Rlo9eFvLmveYSfj/zNS/ArgBuNA8f8a9YXwCcKa1fL8H62t610JelHfmOfeW9orR9E4sSzKOczEuGafz6bu5aHo/fX/O9C3SfRZD3hpTr15pSvfrGi29eSXOX7v/6d0a0tv97nRfm8U=",
+   "encoding": "base64",
+   "height": 22,
+   "id": 1,
+   "name": "Tile Layer 1",
+   "opacity": 1,
+   "type": "tilelayer",
+   "visible": true,
+   "width": 60,
+   "x": 0,
+   "y": 0
+  }
+ ],
+ "nextlayerid": 2,
+ "nextobjectid": 1,
+ "orientation": "orthogonal",
+ "renderorder": "right-down",
+ "tiledversion": "1.12.2",
+ "tileheight": 32,
+ "tilesets": [
+  {
+   "firstgid": 1,
+   "source": "../tilesets/combined_tileset.tsj"
+  }
+ ],
+ "tilewidth": 32,
+ "type": "map",
+ "version": "1.10",
+ "width": 60
 }

@@ -2,7 +2,10 @@
   background-image: url("./lobbypic2.png");
   background-size: cover;
   background-position: center;
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
   color: white;
   font-family: "Cinzel", serif;
   text-align: center;
@@ -10,9 +13,26 @@
   row-gap: 10em;
 }
 
-.GameScreenContainer fieldset {
-  border: none;
-  margin-top: 2rem;
+.GameIntro {
+  width: 100vw;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: black;
+  color: white;
+  font-family: "Cinzel", serif;
+  text-align: center;
+}
+
+.GameIntro p {
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.PhaserGameContainer {
+  width: 100vw;
+  height: 100dvh;
+  background: #020c23;
 }
 
 .player-list {

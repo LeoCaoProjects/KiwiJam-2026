@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PhaserGame from "../game/PhaserGame.jsx";
 import "./GameScreen.css";
 
@@ -11,32 +11,52 @@ const playSound = (path, volume = 0.5) => {
 export default function GameScreen({
   room,
   players,
+  blocks,
   level,
   status,
   onLeave,
 }) {
   const playerOne = players.find((player) => player.slot === 1);
   const playerTwo = players.find((player) => player.slot === 2);
+  const gameReady = Boolean(playerOne && playerTwo);
   const hasPlayedJoinSound = useRef(false);
+  const [showGame, setShowGame] = useState(false);
 
   useEffect(() => {
-    if (players.length === 2 && !hasPlayedJoinSound.current) {
-      playSound("/assets/audio/UI Sounds/Player Join Sound.wav", 1);
+    let introTimer;
+
+    if (gameReady && !hasPlayedJoinSound.current) {
+      playSound("/assets/audio/UI Sounds/Player Join Sound.wav", 0.3);
       hasPlayedJoinSound.current = true;
+      introTimer = window.setTimeout(() => {
+        setShowGame(true);
+      }, 3000);
     }
 
-    if (players.length < 2) {
+    if (!gameReady) {
       hasPlayedJoinSound.current = false;
+      setShowGame(false);
     }
-  }, [players]);
 
-  if (players.length === 2) {
+    return () => window.clearTimeout(introTimer);
+  }, [gameReady]);
+
+  if (gameReady && showGame) {
     return (
       <PhaserGame
         room={room}
         players={players}
+        blocks={blocks}
         level={level}
       />
+    );
+  }
+
+  if (gameReady) {
+    return (
+      <div className="GameIntro">
+        <p>You're awake, but not alone</p>
+      </div>
     );
   }
 
@@ -51,10 +71,6 @@ export default function GameScreen({
         <li>Player 1: {playerOne?.name || "waiting"}</li>
         <li>Player 2: {playerTwo?.name || "waiting"}</li>
       </ul>
-
-      <fieldset>
-        <PhaserGame room={room} players={players} />
-      </fieldset>
 
       <p className="buttons">
         <button type="button" onClick={() => {

@@ -2,12 +2,12 @@ import React, { useEffect, useRef } from "react";
 import Phaser from "phaser";
 import GameScene from "./scenes/GameScene.js";
 
-export default function PhaserGame({ room, players, level }) {
+export default function PhaserGame({ room, players, blocks, level }) {
   const parentRef = useRef(null);
   const sceneRef = useRef(null);
 
   useEffect(() => {
-    const scene = new GameScene(room, players, level);
+    const scene = new GameScene(room, players, blocks, level);
     sceneRef.current = scene;
 
     const game = new Phaser.Game({
@@ -16,6 +16,7 @@ export default function PhaserGame({ room, players, level }) {
       height: 704,
       transparent: true,
       pixelArt: true,
+      disableContextMenu: true,
       parent: parentRef.current,
       scale: {
         mode: Phaser.Scale.FIT,
@@ -42,13 +43,17 @@ export default function PhaserGame({ room, players, level }) {
   }, [players]);
 
   useEffect(() => {
+    sceneRef.current?.setBlocks(blocks);
+  }, [blocks]);
+
+  useEffect(() => {
     sceneRef.current?.setLevel(level);
   }, [level]);
 
   return (
     <div
       ref={parentRef}
-      style={{ width: "100%", height: "calc(100vh - 16px)" }}
+      className="PhaserGameContainer"
     />
   );
 }
