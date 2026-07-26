@@ -2,12 +2,7 @@ import React, { useState } from "react";
 import "./LobbyScreen.css";
 import '@picocss/pico/css/pico.min.css';
 import '../index.css';
-
-const playSound = (path, volume = 0.5) => {
-  const sfx = new Audio(path);
-  sfx.volume = volume;
-  sfx.play();
-};
+import { getVolume, setVolume, getVfxEnabled, setVfxEnabled, playSound } from "../audioSettings.js";
 
 export default function LobbyScreen({
   name,
@@ -18,16 +13,31 @@ export default function LobbyScreen({
   onCreate,
   onJoin,
 }) {
-  const [activeView, setActiveView] = useState(null); // null | "create" | "join"
+  const [activeView, setActiveView] = useState(null); // null | "create" | "join" | "settings"
+  const [volume, setVolumeState] = useState(getVolume());
+  const [vfxEnabled, setVfxEnabledState] = useState(getVfxEnabled());
+
+  const handleVolumeChange = (value) => {
+    setVolumeState(value);
+    setVolume(value);
+  };
+
+  const handleVfxToggle = () => {
+    const next = !vfxEnabled;
+    setVfxEnabledState(next);
+    setVfxEnabled(next);
+  };
 
   return (
     <div className="LobbyScreenContainer">
-      <h1 className="game-title" onClick={() => {
+      <h1
+        className="game-title"
+        onClick={() => {
           playSound("/assets/audio/UI Sounds/UI Menu Click2.wav", 0.6);
           setActiveView(null);
         }}
       >
-        BETWEEN<br/>US
+        BETWEEN<br />US
       </h1>
 
       <div className="main-menu">
@@ -72,6 +82,40 @@ export default function LobbyScreen({
           </div>
         )}
 
+        {activeView === "settings" && (
+          <div className="menu-row settings-row">
+            <label htmlFor="volume">Volume: </label>
+            <input
+              id="volume"
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={(event) => handleVolumeChange(parseFloat(event.target.value))}
+            />
+            <span>{Math.round(volume * 100)}%</span>
+
+            <label htmlFor="vfx-toggle">Button SFX: </label>
+            <input
+              id="vfx-toggle"
+              type="checkbox"
+              checked={vfxEnabled}
+              onChange={handleVfxToggle}
+            />
+
+            <button
+              type="button"
+              onClick={() => {
+                playSound("/assets/audio/UI Sounds/UI Menu Click2.wav", 0.6);
+                setActiveView(null);
+              }}
+            >
+              Back
+            </button>
+          </div>
+        )}
+
         {activeView === null && (
           <>
             <button
@@ -96,6 +140,7 @@ export default function LobbyScreen({
               type="button"
               onClick={() => {
                 playSound("/assets/audio/UI Sounds/UI Menu Click2.wav", 0.6);
+                setActiveView("settings");
               }}
             >
               Settings

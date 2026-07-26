@@ -4,6 +4,9 @@ import LobbyScreen from "./screens/LobbyScreen.jsx";
 import GameScreen from "./screens/GameScreen.jsx";
 import EndScreen from "./screens/EndScreen.jsx";
 import { createLobby, joinLobby, SERVER_URL } from "./network/colyseusClient.js";
+import { getVolume, subscribeAudioSettings } from "./audioSettings.js";
+
+const MUSIC_BASE_VOLUME = 0.2; // music sits quieter than SFX at 100% setting
 
 function getPlayers(room) {
   const players = [];
@@ -38,7 +41,7 @@ export default function App() {
   useEffect(() => {
     const startMusicOnce = () => {
       if (!musicStartedRef.current && audioRef.current) {
-        audioRef.current.volume = 0.1;
+        audioRef.current.volume = getVolume() * MUSIC_BASE_VOLUME;
         audioRef.current.play();
         musicStartedRef.current = true;
       }
@@ -47,6 +50,16 @@ export default function App() {
 
     window.addEventListener("click", startMusicOnce);
     return () => window.removeEventListener("click", startMusicOnce);
+  }, []);
+
+  // Keep music volume in sync with the settings slider, even mid-playback
+  useEffect(() => {
+    const unsubscribe = subscribeAudioSettings(({ volume }) => {
+      if (audioRef.current) {
+        audioRef.current.volume = volume * MUSIC_BASE_VOLUME;
+      }
+    });
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
