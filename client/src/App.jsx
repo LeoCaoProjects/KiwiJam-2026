@@ -3,6 +3,7 @@ import IntroVideo from "./screens/IntroVideo.jsx";
 import LobbyScreen from "./screens/LobbyScreen.jsx";
 import GameScreen from "./screens/GameScreen.jsx";
 import { createLobby, joinLobby, SERVER_URL } from "./network/colyseusClient.js";
+import { getVolume, subscribeAudioSettings } from "./audioSettings.js";
 
 function getPlayers(room) {
   const players = [];
@@ -74,6 +75,16 @@ export default function App() {
     return () => window.removeEventListener("click", startMusicOnce);
   }, []);
 
+  // Keep music volume in sync with the settings slider, even mid-playback
+  useEffect(() => {
+    const unsubscribe = subscribeAudioSettings(({ volume }) => {
+      if (audioRef.current) {
+        audioRef.current.volume = volume * musicVolume;
+      }
+    });
+    return unsubscribe;
+  }, [musicVolume]);
+
   useEffect(() => {
     return () => roomRef.current?.leave();
   }, []);
@@ -85,7 +96,7 @@ export default function App() {
       return;
     }
 
-    audio.volume = musicVolume;
+    audio.volume = musicVolume * getVolume();
     audio.src = musicSource;
     audio.load();
 
