@@ -56,6 +56,7 @@ export default function GameScreen({ room, players, status, onLeave }) {
               type="button"
               onClick={() => {
                 playSound("/assets/audio/UI Sounds/Confirm menu sound.mp3", 1);
+                EndScreen();
               }}
             >
               Play

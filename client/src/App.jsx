@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import IntroVideo from "./screens/IntroVideo.jsx";
 import LobbyScreen from "./screens/LobbyScreen.jsx";
 import GameScreen from "./screens/GameScreen.jsx";
+import EndScreen from "./screens/EndScreen.jsx";
 import { createLobby, joinLobby, SERVER_URL } from "./network/colyseusClient.js";
 
 function getPlayers(room) {
@@ -26,6 +27,7 @@ export default function App() {
   const musicStartedRef = useRef(false);
 
   const [showIntro, setShowIntro] = useState(true);
+  const [gameOver, setGameOver] = useState(false);
   const [name, setName] = useState("");
   const [lobbyCode, setLobbyCode] = useState("");
   const [room, setRoom] = useState(null);
@@ -112,6 +114,13 @@ export default function App() {
     await activeRoom?.leave();
   }
 
+  function returnHome() {
+    setGameOver(false);
+    setRoom(null);
+    setPlayers([]);
+    setStatus(`Server: ${SERVER_URL}`);
+  }
+
   const persistentAudio = (
     <audio ref={audioRef} loop>
       <source src="/assets/audio/MAIN/Menu Loop.wav" type="audio/wav" />
@@ -127,6 +136,15 @@ export default function App() {
     );
   }
 
+  if (gameOver) {
+    return (
+      <>
+        {persistentAudio}
+        <EndScreen onReturnHome={returnHome} />
+      </>
+    );
+  }
+
   if (room) {
     return (
       <>
@@ -136,6 +154,7 @@ export default function App() {
           players={players}
           status={status}
           onLeave={leave}
+          onGameEnd={() => setGameOver(true)}
         />
       </>
     );
