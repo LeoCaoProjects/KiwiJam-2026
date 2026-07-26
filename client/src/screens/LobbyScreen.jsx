@@ -30,15 +30,16 @@ export default function LobbyScreen({
 
   return (
     <div className="LobbyScreenContainer">
-      <h1
-        className="game-title"
-        onClick={() => {
+      <button type="button" className="game-title" onClick={() => {
           playSound("/assets/audio/UI Sounds/UI Menu Click2.wav", 0.6);
           setActiveView(null);
         }}
       >
-        BETWEEN<br />US
-      </h1>
+        <img
+          src="/assets/images/slightly-diagonal.png"
+          alt="Between Us"
+        />
+      </button>
 
       <div className="main-menu">
 

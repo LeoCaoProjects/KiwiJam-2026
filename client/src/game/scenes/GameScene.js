@@ -261,7 +261,7 @@ export default class GameScene extends Phaser.Scene {
       wordCount * 350,
       2500,
       5500
-    );
+    ) * 1.5;
 
     this.dialogueText.setText(line);
 

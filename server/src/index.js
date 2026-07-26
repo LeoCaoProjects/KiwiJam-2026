@@ -10,7 +10,11 @@ const host = process.env.SERVER_HOST || "0.0.0.0";
 const app = express();
 app.use(express.json());
 
-// simple health check, useful when deployed to Fly.io/Railway
+app.get("/health", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.json({ ready: true });
+});
+
 app.get("/", (req, res) => {
   res.send("Kiwijam Colyseus server is running.");
 });

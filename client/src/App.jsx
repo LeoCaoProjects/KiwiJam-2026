@@ -1,8 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import IntroVideo from "./screens/IntroVideo.jsx";
+import CreditsVideo from "./screens/CreditsVideo.jsx";
 import LobbyScreen from "./screens/LobbyScreen.jsx";
 import GameScreen from "./screens/GameScreen.jsx";
-import { createLobby, joinLobby, SERVER_URL } from "./network/colyseusClient.js";
+import {
+  createLobby,
+  isServerReady,
+  joinLobby,
+  SERVER_URL,
+} from "./network/colyseusClient.js";
 import { getVolume, subscribeAudioSettings } from "./audioSettings.js";
 
 function getPlayers(room) {
@@ -43,6 +49,7 @@ export default function App() {
   const audioRef = useRef(null);
   const musicStartedRef = useRef(false);
 
+  const [serverReady, setServerReady] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [name, setName] = useState("");
   const [lobbyCode, setLobbyCode] = useState("");
@@ -50,19 +57,57 @@ export default function App() {
   const [players, setPlayers] = useState([]);
   const [blocks, setBlocks] = useState([]);
   const [level, setLevel] = useState(0);
+  const [gameFinished, setGameFinished] = useState(false);
   const [status, setStatus] = useState(`Server: ${SERVER_URL}`);
   const bothPlayersConnected =
     players.some((player) => player.slot === 1) &&
     players.some((player) => player.slot === 2);
   const gameStarted =
     !showIntro && Boolean(room) && bothPlayersConnected;
-  const musicSource = gameStarted
-    ? "/assets/audio/Main Gameplay Loop Updated Mix 1.wav"
-    : "/assets/audio/MAIN/Menu Loop.wav";
+  let musicSource = "/assets/audio/MAIN/Menu Loop.wav";
+
+  if (gameStarted) {
+    musicSource =
+      level >= 4
+        ? "/assets/audio/MAIN/Gameplay Loop Creepier.wav"
+        : "/assets/audio/Main Gameplay Loop Updated Mix 1.wav";
+  }
+
   const musicVolume = gameStarted ? 0.35 : 0.55;
+
+  useEffect(() => {
+    let cancelled = false;
+    let retryTimer;
+
+    async function checkServer() {
+      const ready = await isServerReady();
+
+      if (cancelled) {
+        return;
+      }
+
+      if (ready) {
+        setServerReady(true);
+        return;
+      }
+
+      retryTimer = window.setTimeout(checkServer, 2000);
+    }
+
+    checkServer();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(retryTimer);
+    };
+  }, []);
 
   // Start music on the very first click anywhere in the app
   useEffect(() => {
+    if (!serverReady) {
+      return;
+    }
+
     const startMusicOnce = () => {
       if (!musicStartedRef.current && audioRef.current) {
         audioRef.current.play().catch(() => {});
@@ -73,7 +118,7 @@ export default function App() {
 
     window.addEventListener("click", startMusicOnce);
     return () => window.removeEventListener("click", startMusicOnce);
-  }, []);
+  }, [serverReady]);
 
   // Keep music volume in sync with the settings slider, even mid-playback
   useEffect(() => {
@@ -92,7 +137,13 @@ export default function App() {
   useEffect(() => {
     const audio = audioRef.current;
 
-    if (!audio) {
+    if (!audio || !serverReady) {
+      return;
+    }
+
+    if (gameFinished) {
+      audio.pause();
+      audio.currentTime = 0;
       return;
     }
 
@@ -109,7 +160,7 @@ export default function App() {
         })
         .catch(() => {});
     }
-  }, [musicSource, musicVolume]);
+  }, [gameFinished, musicSource, musicVolume, serverReady]);
 
   function connectToRoom(nextRoom) {
     roomRef.current = nextRoom;
@@ -118,6 +169,7 @@ export default function App() {
     setRoom(nextRoom);
     setLobbyCode(nextRoom.roomId);
     setLevel(0);
+    setGameFinished(false);
     setStatus("Connected to lobby.");
 
     const refreshPlayers = () => setPlayers(getPlayers(nextRoom));
@@ -125,6 +177,10 @@ export default function App() {
 
     nextRoom.onMessage("level", (nextLevel) => {
       setLevel(nextLevel);
+    });
+
+    nextRoom.onMessage("finished", () => {
+      setGameFinished(true);
     });
 
     nextRoom.state.players.onAdd((player) => {
@@ -185,6 +241,7 @@ export default function App() {
     setPlayers([]);
     setBlocks([]);
     setLevel(0);
+    setGameFinished(false);
     setStatus("Left lobby.");
 
     await activeRoom?.leave();
@@ -193,7 +250,25 @@ export default function App() {
   const persistentAudio = <audio ref={audioRef} loop autoPlay />;
   let content;
 
-  if (showIntro) {
+  if (!serverReady) {
+    content = (
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "black",
+          color: "white",
+        }}
+      >
+        Server is loading...
+      </div>
+    );
+  } else if (gameFinished) {
+    content = <CreditsVideo />;
+  } else if (showIntro) {
     content = (
       <IntroVideo onFinish={() => setShowIntro(false)} />
     );

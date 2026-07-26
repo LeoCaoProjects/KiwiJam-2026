@@ -21,6 +21,7 @@ class GameRoom extends Room {
     this.setState(new GameState());
     this.maxClients = 2;
     this.level = 0;
+    this.finished = false;
     this.playersAtGoal = new Set();
     this.blockTimers = new Map();
     this.blockCooldowns = new Map();
@@ -113,7 +114,7 @@ class GameRoom extends Room {
     });
 
     this.onMessage("goal", (client, message) => {
-      if (message?.level !== this.level) {
+      if (this.finished || message?.level !== this.level) {
         return;
       }
 
@@ -129,12 +130,21 @@ class GameRoom extends Room {
           this.playersAtGoal.has(sessionId)
         );
 
-      if (everyoneAtGoal && this.level < lastLevel) {
+      if (!everyoneAtGoal) {
+        return;
+      }
+
+      if (this.level < lastLevel) {
         this.level += 1;
         this.playersAtGoal.clear();
         this.removeAllBlocks();
         this.resetPlayers();
         this.broadcast("level", this.level);
+      } else {
+        this.finished = true;
+        this.playersAtGoal.clear();
+        this.removeAllBlocks();
+        this.broadcast("finished");
       }
     });
 

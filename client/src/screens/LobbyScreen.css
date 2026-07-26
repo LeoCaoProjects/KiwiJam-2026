@@ -15,23 +15,32 @@
   animation: backgroundpulse 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
-.game-title {
+button.game-title {
   position: absolute;
-  top: 4rem;
-  left: 3rem;
-  font-family: "Cinzel", serif;
-  font-size: 3rem;
-  color: #d9d9d9;
-  transform: rotate(-20deg);
-  line-height: 1;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-
-  animation: pulse 4s ease-in-out infinite;
+  top: 2rem;
+  left: 2rem;
+  width: clamp(220px, 32vw, 460px);
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: rotate(-8deg);
+  cursor: pointer;
 }
 
-@keyframes pulse {
-  0%, 100% {opacity: 1;}
-  50% { opacity: 0.15;}
+button.game-title:hover,
+button.game-title:focus,
+button.game-title:active {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+button.game-title img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 @keyframes backgroundpulse {
