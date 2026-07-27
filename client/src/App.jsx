@@ -177,7 +177,17 @@ export default function App() {
     setGameFinished(nextRoom.state.finished ?? false);
     setStatus("Connected to lobby.");
 
-    const refreshPlayers = () => setPlayers(getPlayers(nextRoom));
+    let hadTwoPlayers = nextRoom.state.players.size === 2;
+
+    const refreshPlayers = () => {
+      const nextPlayers = getPlayers(nextRoom);
+
+      setPlayers(nextPlayers);
+
+      if (nextPlayers.length === 2) {
+        hadTwoPlayers = true;
+      }
+    };
     const refreshBlocks = () => setBlocks(getBlocks(nextRoom));
 
     nextRoom.onMessage("level", (nextLevel) => {
@@ -201,7 +211,17 @@ export default function App() {
       refreshPlayers();
     });
 
-    nextRoom.state.players.onRemove(refreshPlayers);
+    nextRoom.state.players.onRemove(() => {
+      refreshPlayers();
+
+      if (
+        hadTwoPlayers &&
+        nextRoom.state.players.size < 2 &&
+        roomRef.current === nextRoom
+      ) {
+        returnToMainMenu(nextRoom);
+      }
+    });
 
     nextRoom.state.blocks.onAdd((block) => {
       block.onChange(refreshBlocks);
@@ -217,6 +237,23 @@ export default function App() {
         setStatus("Disconnected from lobby.");
       }
     });
+  }
+
+  async function returnToMainMenu(disconnectedRoom) {
+    if (roomRef.current !== disconnectedRoom) {
+      return;
+    }
+
+    roomRef.current = null;
+    setRoom(null);
+    setPlayers([]);
+    setBlocks([]);
+    setLevel(0);
+    setGameFinished(false);
+    setLobbyCode("");
+    setStatus("The other player disconnected.");
+
+    await disconnectedRoom.leave();
   }
 
   async function create() {
