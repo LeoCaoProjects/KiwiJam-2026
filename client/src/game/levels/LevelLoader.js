@@ -112,6 +112,7 @@ export function createPlayground(scene, level, playerSlot) {
     -1,
     17,
     18,
+    46,
     ...grassTopTiles,
     ...treeTiles,
   ]);
