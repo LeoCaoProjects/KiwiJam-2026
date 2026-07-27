@@ -1,10 +1,10 @@
-# Kiwijam Game
+# Between Us
 
-Minimal two-player 2D lobby. The client uses React and Phaser. The server uses Colyseus on Node.js.
+A two-player cooperative platformer made for KiwiJam 2026. The
+frontend uses React and Phaser, and the multiplayer server uses
+Colyseus and Node.js.
 
-See [GAME_JAM_GUIDE.md](GAME_JAM_GUIDE.md) for the planned directory layout, explanation of every file, Tiled level-building workflow, multiplayer architecture and 48-hour development plan.
-
-## Setup
+## Install
 
 Requires Node.js 18 or newer.
 
@@ -16,7 +16,7 @@ cd ../client
 npm install
 ```
 
-## Run Locally
+## Run locally
 
 Start the server:
 
@@ -32,16 +32,29 @@ cd client
 npm run dev
 ```
 
-Open `http://localhost:5173` in two browser windows. Create a lobby in one window, then enter its lobby code in the other.
+Open `http://localhost:5173` in two browser windows. Create a lobby
+in one window, then enter its lobby code in the other.
 
-## Project Structure
+## Project structure
 
 ```text
 kiwijam-game/
-|-- client/      React and Phaser frontend
-|-- server/      Colyseus backend
-|-- TECH_STACK.md
+|-- client/
+|   |-- public/assets/   Game levels, art, audio and video
+|   `-- src/             React and Phaser source
+|-- server/
+|   `-- src/             Colyseus server source
+|-- source-assets/       Preserved editor files and unused media
 `-- README.md
 ```
 
-For another computer on the same network, set `VITE_SERVER_URL` in `client/.env` to the server computer's address, such as `ws://192.168.1.5:2567`.
+The client uses localhost automatically during local development. To
+connect through a local network, create `client/.env` and set:
+
+```env
+VITE_SERVER_IP=192.168.1.5
+VITE_SERVER_PORT=2567
+```
+
+For a deployed client, set `VITE_SERVER_URL` in the hosting platform
+to the secure WebSocket URL of the deployed server.

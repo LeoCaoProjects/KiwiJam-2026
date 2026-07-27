@@ -16,14 +16,3 @@
   object-fit: contain;
   background: black;
 }
-
-.skip-button {
-  position: absolute;
-  bottom: 2rem;
-  right: 2rem;
-  background: rgba(0,0,0,0.5);
-  color: white;
-  border: 1px solid white;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}

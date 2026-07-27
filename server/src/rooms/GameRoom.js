@@ -20,8 +20,6 @@ class GameRoom extends Room {
   onCreate() {
     this.setState(new GameState());
     this.maxClients = 2;
-    this.level = 0;
-    this.finished = false;
     this.playersAtGoal = new Set();
     this.blockTimers = new Map();
     this.blockCooldowns = new Map();
@@ -30,13 +28,13 @@ class GameRoom extends Room {
       if (
         !this.state.players.has(client.sessionId) ||
         this.state.players.size !== 2 ||
-        message?.level !== this.level ||
+        message?.level !== this.state.level ||
         !Number.isFinite(message?.x) ||
         !Number.isFinite(message?.y) ||
         message.x < 0 ||
-        message.x >= mapWidths[this.level] * 32 ||
+        message.x >= mapWidths[this.state.level] * 32 ||
         message.y < 0 ||
-        message.y >= mapHeights[this.level] * 32
+        message.y >= mapHeights[this.state.level] * 32
       ) {
         return;
       }
@@ -44,7 +42,7 @@ class GameRoom extends Room {
       this.broadcast("ping", {
         x: Math.round(message.x),
         y: Math.round(message.y),
-        level: this.level,
+        level: this.state.level,
       });
     });
 
@@ -59,13 +57,13 @@ class GameRoom extends Room {
         this.state.blocks.has(client.sessionId) ||
         Date.now() <
           (this.blockCooldowns.get(client.sessionId) || 0) ||
-        message?.level !== this.level ||
+        message?.level !== this.state.level ||
         !Number.isInteger(tileX) ||
         !Number.isInteger(tileY) ||
         tileX < 0 ||
-        tileX >= mapWidths[this.level] ||
+        tileX >= mapWidths[this.state.level] ||
         tileY < 0 ||
-        tileY >= mapHeights[this.level]
+        tileY >= mapHeights[this.state.level]
       ) {
         return;
       }
@@ -73,7 +71,7 @@ class GameRoom extends Room {
       const block = new Block();
       block.x = tileX * 32;
       block.y = tileY * 32;
-      block.level = this.level;
+      block.level = this.state.level;
       block.ownerSlot = player.slot;
       block.expiresAt = Date.now() + blockLifetime;
       this.state.blocks.set(client.sessionId, block);
@@ -101,20 +99,29 @@ class GameRoom extends Room {
       if (Number.isFinite(position.x)) {
         player.x = Math.max(
           8,
-          Math.min(mapWidths[this.level] * 32 - 8, position.x)
+          Math.min(
+            mapWidths[this.state.level] * 32 - 8,
+            position.x
+          )
         );
       }
 
       if (Number.isFinite(position.y)) {
         player.y = Math.max(
           8,
-          Math.min(mapHeights[this.level] * 32 - 8, position.y)
+          Math.min(
+            mapHeights[this.state.level] * 32 - 8,
+            position.y
+          )
         );
       }
     });
 
     this.onMessage("goal", (client, message) => {
-      if (this.finished || message?.level !== this.level) {
+      if (
+        this.state.finished ||
+        message?.level !== this.state.level
+      ) {
         return;
       }
 
@@ -134,14 +141,14 @@ class GameRoom extends Room {
         return;
       }
 
-      if (this.level < lastLevel) {
-        this.level += 1;
+      if (this.state.level < lastLevel) {
+        this.state.level += 1;
         this.playersAtGoal.clear();
         this.removeAllBlocks();
         this.resetPlayers();
-        this.broadcast("level", this.level);
+        this.broadcast("level", this.state.level);
       } else {
-        this.finished = true;
+        this.state.finished = true;
         this.playersAtGoal.clear();
         this.removeAllBlocks();
         this.broadcast("finished");
@@ -175,11 +182,17 @@ class GameRoom extends Room {
 
   onJoin(client, options) {
     const player = new Player();
-    player.slot = this.state.players.size + 1;
+    const usedSlots = new Set(
+      [...this.state.players.values()].map(
+        (currentPlayer) => currentPlayer.slot
+      )
+    );
+
+    player.slot = usedSlots.has(1) ? 2 : 1;
     player.name = options?.name || `Player ${player.slot}`;
 
-    player.x = getSpawnX(player.slot, this.level);
-    player.y = spawnY[this.level];
+    player.x = getSpawnX(player.slot, this.state.level);
+    player.y = spawnY[this.state.level];
 
     this.state.players.set(client.sessionId, player);
     console.log(`${player.name} joined ${this.roomId}`);
@@ -225,8 +238,8 @@ class GameRoom extends Room {
   }
 
   resetPlayer(player) {
-    player.x = getSpawnX(player.slot, this.level);
-    player.y = spawnY[this.level];
+    player.x = getSpawnX(player.slot, this.state.level);
+    player.y = spawnY[this.state.level];
   }
 
   onDispose() {

@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import Player from "../objects/Player.js";
 import BuildBlock from "../objects/BuildBlock.js";
+import { getMixedVolume } from "../../audioSettings.js";
 import {
   createPlayground,
   preloadPlayground,
@@ -65,39 +66,43 @@ export default class GameScene extends Phaser.Scene {
     this.blockObjects = new Map();
     this.touchingGoal = false;
     this.lastMoveSent = 0;
+    this.dialogueIndex = -1;
+    this.dialogueReady = false;
+    this.dialoguePlaying = false;
+    this.typewriterBuffer = null;
   }
 
   preload() {
     this.load.image(
       "gradientBackground",
-      "/assets/backgrounds/gradient-bottom-to-top.png"
+      "./assets/backgrounds/gradient-bottom-to-top.png"
     );
 
     if (!this.cache.audio.exists("jumpSound")) {
       this.load.audio(
         "jumpSound",
-        "/assets/audio/Player/Jump.wav"
+        "./assets/audio/Player/Jump.wav"
       );
     }
 
     if (!this.cache.audio.exists("fallSound")) {
       this.load.audio(
         "fallSound",
-        "/assets/audio/Player/Falling.wav"
+        "./assets/audio/Player/Falling.wav"
       );
     }
 
     if (!this.cache.audio.exists("placeBlockSound")) {
       this.load.audio(
         "placeBlockSound",
-        "/assets/audio/Player/Placing Block_tile.wav"
+        "./assets/audio/Player/Placing Block_tile.wav"
       );
     }
 
     if (!this.cache.audio.exists("blockCountdownSound")) {
       this.load.audio(
         "blockCountdownSound",
-        "/assets/audio/Place block countdown woosh boosted.wav"
+        "./assets/audio/Place block countdown woosh boosted.wav"
       );
     }
 
@@ -113,6 +118,10 @@ export default class GameScene extends Phaser.Scene {
     this.fallResetSent = false;
     this.spikeResetSent = false;
     this.isRestarting = false;
+    this.dialogueLines = null;
+    this.dialogueIndex = -1;
+    this.dialogueReady = false;
+    this.dialoguePlaying = false;
 
     const localPlayerData = this.players.find(
       (player) => player.sessionId === this.room.sessionId
@@ -204,6 +213,7 @@ export default class GameScene extends Phaser.Scene {
         );
       });
     }
+
   }
 
   createBackground() {
@@ -235,57 +245,177 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
-    this.dialogueText = this.add
-      .text(24, 680, "", {
-        fontFamily: "Cinzel, serif",
-        fontSize: "18px",
-        color: "#ffffff",
-        wordWrap: { width: 720 },
-      })
-      .setOrigin(0, 1)
+    this.dialogueLines = lines;
+    this.dialogueIndex = -1;
+    this.dialogueReady = false;
+    this.dialoguePlaying = true;
+    this.dialoguePanel = this.add
+      .rectangle(640, 612, 1040, 96, 0x04111d, 0.82)
+      .setStrokeStyle(1, 0x8edcff, 0.45)
       .setScrollFactor(0)
-      .setDepth(100)
+      .setDepth(200)
+      .setAlpha(0);
+    this.dialogueText = this.add
+      .text(640, 612, "", {
+        fontFamily: "Cinzel, serif",
+        fontSize: "26px",
+        color: "#ffffff",
+        align: "center",
+        wordWrap: { width: 850, useAdvancedWrap: true },
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(202)
       .setAlpha(0);
 
-    this.showDialogueLine(lines, 0);
+    this.time.delayedCall(700, () => {
+      this.dialogueReady = true;
+      this.showNextDialogueLine();
+    });
   }
 
-  showDialogueLine(lines, index) {
-    if (index >= lines.length || !this.dialogueText) {
+  showNextDialogueLine() {
+    if (!this.dialogueReady || !this.dialogueLines) {
       return;
     }
 
-    const line = lines[index];
-    const wordCount = line.split(" ").length;
-    const readingTime = Phaser.Math.Clamp(
-      wordCount * 350,
-      2500,
-      5500
-    ) * 1.5;
+    const nextIndex = this.dialogueIndex + 1;
 
-    this.dialogueText.setText(line);
+    if (nextIndex >= this.dialogueLines.length) {
+      return;
+    }
+
+    this.dialogueReady = false;
+    this.dialogueIndex = nextIndex;
+    const line = this.dialogueLines[nextIndex];
+    const dialogueObjects = [
+      this.dialoguePanel,
+      this.dialogueText,
+    ];
 
     this.tweens.add({
-      targets: this.dialogueText,
-      alpha: 1,
-      duration: 500,
+      targets: dialogueObjects,
+      alpha: 0,
+      duration: this.dialogueIndex === 0 ? 0 : 250,
       ease: "Sine.easeInOut",
-      onComplete: () => {
-        this.time.delayedCall(readingTime, () => {
-          this.tweens.add({
-            targets: this.dialogueText,
-            alpha: 0,
-            duration: 500,
-            ease: "Sine.easeInOut",
-            onComplete: () => {
-              this.time.delayedCall(250, () => {
-                this.showDialogueLine(lines, index + 1);
-              });
-            },
-          });
-        });
+      onComplete: () => this.revealDialogueLine(line, dialogueObjects),
+    });
+  }
+
+  revealDialogueLine(line, dialogueObjects) {
+    this.dialogueText.setText("");
+
+    this.tweens.add({
+      targets: dialogueObjects,
+      alpha: 1,
+      duration: 450,
+      ease: "Sine.easeInOut",
+    });
+
+    let character = 0;
+
+    this.dialogueTypingEvent?.remove();
+    this.dialogueTypingEvent = this.time.addEvent({
+      delay: 58,
+      repeat: line.length - 1,
+      callback: () => {
+        character += 1;
+        this.dialogueText.setText(line.slice(0, character));
+
+        const typedCharacter = line[character - 1];
+
+        if (/[a-z0-9]/i.test(typedCharacter)) {
+          this.playTypewriterSound(typedCharacter);
+        }
+
+        if (character === line.length) {
+          this.waitAfterDialogueLine(line, dialogueObjects);
+        }
       },
     });
+  }
+
+  waitAfterDialogueLine(line, dialogueObjects) {
+    const wordCount = line.split(" ").length;
+    const readingTime = Phaser.Math.Clamp(
+      wordCount * 550,
+      3200,
+      7000
+    );
+
+    this.time.delayedCall(readingTime, () => {
+      if (this.dialogueIndex === this.dialogueLines.length - 1) {
+        this.tweens.add({
+          targets: dialogueObjects,
+          alpha: 0,
+          duration: 700,
+          ease: "Sine.easeInOut",
+          onComplete: () => {
+            this.dialoguePlaying = false;
+          },
+        });
+        return;
+      }
+
+      this.dialogueReady = true;
+      this.showNextDialogueLine();
+    });
+  }
+
+  playTypewriterSound(character) {
+    const context = this.sound.context;
+
+    if (!context || context.state !== "running") {
+      return;
+    }
+
+    if (!this.typewriterBuffer) {
+      const length = Math.floor(context.sampleRate * 0.025);
+      const buffer = context.createBuffer(
+        1,
+        length,
+        context.sampleRate
+      );
+      const samples = buffer.getChannelData(0);
+
+      for (let index = 0; index < length; index += 1) {
+        const fade = 1 - index / length;
+        samples[index] =
+          (Math.random() * 2 - 1) * fade * fade;
+      }
+
+      this.typewriterBuffer = buffer;
+    }
+
+    const source = context.createBufferSource();
+    const filter = context.createBiquadFilter();
+    const gain = context.createGain();
+    const now = context.currentTime;
+
+    source.buffer = this.typewriterBuffer;
+    source.playbackRate.value =
+      0.92 + (character.charCodeAt(0) % 7) * 0.02;
+    filter.type = "bandpass";
+    filter.frequency.value = 1500;
+    filter.Q.value = 0.8;
+    gain.gain.setValueAtTime(
+      getMixedVolume("typing"),
+      now
+    );
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now + 0.025
+    );
+
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(context.destination);
+    source.start(now);
+    source.onended = () => {
+      source.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+    };
   }
 
   createParticleTextures() {
@@ -355,6 +485,20 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
+    if (this.dialoguePlaying) {
+      sprite.body.setVelocityX(0);
+
+      if (time - this.lastMoveSent >= 50) {
+        this.room.send("move", {
+          x: sprite.x,
+          y: sprite.y,
+        });
+        this.lastMoveSent = time;
+      }
+
+      return;
+    }
+
     if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
       this.room.send("reset");
     }
@@ -364,7 +508,9 @@ export default class GameScene extends Phaser.Scene {
       !this.fallResetSent
     ) {
       this.fallResetSent = true;
-      this.sound.play("fallSound", { volume: 0.5 });
+      this.sound.play("fallSound", {
+        volume: getMixedVolume("fall"),
+      });
       this.room.send("fall");
     }
 
@@ -389,20 +535,26 @@ export default class GameScene extends Phaser.Scene {
 
     if (jumpPressed && onGround) {
       sprite.body.setVelocityY(-460);
-      this.sound.play("jumpSound", { volume: 0.4 });
+      this.sound.play("jumpSound", {
+        volume: getMixedVolume("jump"),
+      });
     }
 
-    const insideGoal =
-      sprite.body.left >= this.goalTile.pixelX &&
-      sprite.body.right <= this.goalTile.pixelX + 32 &&
-      sprite.body.top >=
-        this.goalTile.pixelY + this.mapOffsetY &&
-      sprite.body.bottom <=
-        this.goalTile.pixelY + this.mapOffsetY + 32;
+    const goalLeft = this.goalTile.pixelX;
+    const goalRight = goalLeft + 32;
+    const goalTop =
+      this.goalTile.pixelY + this.mapOffsetY;
+    const goalBottom = goalTop + 32;
+    const goalOverlapX =
+      Math.min(sprite.body.right, goalRight) -
+      Math.max(sprite.body.left, goalLeft);
+    const goalOverlapY =
+      Math.min(sprite.body.bottom, goalBottom) -
+      Math.max(sprite.body.top, goalTop);
     const standingInGoal =
-      insideGoal &&
-      onGround &&
-      moveX === 0;
+      goalOverlapX >= 4 &&
+      goalOverlapY >= 4 &&
+      onGround;
 
     if (standingInGoal !== this.touchingGoal) {
       this.touchingGoal = standingInGoal;
@@ -419,6 +571,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   handlePointerDown(pointer) {
+    if (this.dialoguePlaying) {
+      return;
+    }
+
     if (!this.localPlayer?.sprite?.body) {
       return;
     }
@@ -500,7 +656,9 @@ export default class GameScene extends Phaser.Scene {
       duration: 300,
       onComplete: () => outline.destroy(),
     });
-    this.sound.play("placeBlockSound", { volume: 0.5 });
+    this.sound.play("placeBlockSound", {
+      volume: getMixedVolume("placeBlock"),
+    });
   }
 
   handleTileCollision(player, tile) {

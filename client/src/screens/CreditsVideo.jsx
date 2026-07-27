@@ -13,7 +13,7 @@ export default function CreditsVideo() {
           onEnded={() => setFinished(true)}
           className="intro-video"
         >
-          <source src="/assets/video/credits.mp4" type="video/mp4" />
+          <source src="./assets/video/credits.mp4" type="video/mp4" />
         </video>
       )}
     </div>

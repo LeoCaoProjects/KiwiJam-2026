@@ -8,6 +8,8 @@ const levelPairs = [
 ];
 const tilesetKey = "combined-tileset";
 const mapOffsetY = 0;
+const endWallTile = 62;
+const closedEndLevels = [0, 2, 3];
 const grassTopTiles = [
   4, 5, 6,
   7, 8, 9,
@@ -35,17 +37,17 @@ export function preloadPlayground(scene, level) {
   levelPair.forEach((mapKey) => {
     scene.load.tilemapTiledJSON(
       mapKey,
-      `/assets/levels/${mapKey}.json`
+      `./assets/levels/${mapKey}.json`
     );
   });
 
   scene.load.image(
     tilesetKey,
-    "/assets/tilesets/combined_tileset.png"
+    "./assets/tilesets/combined_tileset.png"
   );
   scene.load.spritesheet(
     "placedBlock",
-    "/assets/tilesets/combined_tileset.png",
+    "./assets/tilesets/combined_tileset.png",
     { frameWidth: 32, frameHeight: 32 }
   );
 }
@@ -68,12 +70,43 @@ function createLayer(scene, mapKey) {
   return { map, layer };
 }
 
+function fillEndWall(world) {
+  let wallStart = world.map.width;
+
+  findWallStart:
+  for (let x = world.map.width - 1; x >= 0; x -= 1) {
+    for (let y = 0; y < world.map.height; y += 1) {
+      const tile = world.layer.getTileAt(x, y);
+
+      if (tile && tile.index !== -1) {
+        wallStart = x + 1;
+        break findWallStart;
+      }
+    }
+  }
+
+  for (let y = 0; y < world.map.height; y += 1) {
+    for (
+      let x = wallStart;
+      x < world.map.width;
+      x += 1
+    ) {
+      world.layer.putTileAt(endWallTile, x, y);
+    }
+  }
+}
+
 export function createPlayground(scene, level, playerSlot) {
   const [levelA, levelB] = getLevelPair(level);
   const collisionMapKey = playerSlot === 2 ? levelB : levelA;
   const visibleMapKey = playerSlot === 2 ? levelA : levelB;
   const visibleWorld = createLayer(scene, visibleMapKey);
   const collisionWorld = createLayer(scene, collisionMapKey);
+
+  if (closedEndLevels.includes(level)) {
+    fillEndWall(visibleWorld);
+    fillEndWall(collisionWorld);
+  }
 
   collisionWorld.layer.setCollisionByExclusion([
     -1,

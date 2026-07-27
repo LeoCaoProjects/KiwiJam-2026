@@ -8,7 +8,6 @@ const port = Number(process.env.PORT || 2567);
 const host = process.env.SERVER_HOST || "0.0.0.0";
 
 const app = express();
-app.use(express.json());
 
 app.get("/health", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
@@ -16,7 +15,7 @@ app.get("/health", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Kiwijam Colyseus server is running.");
+  res.send("Between Us Colyseus server is running.");
 });
 
 const server = http.createServer(app);

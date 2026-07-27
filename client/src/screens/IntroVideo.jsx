@@ -11,7 +11,7 @@ export default function IntroVideo({ onFinish }) {
         onEnded={onFinish}
         className="intro-video"
       >
-        <source src="/assets/video/Loading.mp4" type="video/mp4" />
+        <source src="./assets/video/Loading.mp4" type="video/mp4" />
       </video>
     </div>
   );

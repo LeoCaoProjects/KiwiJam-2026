@@ -2,7 +2,12 @@ import React, { useEffect, useRef } from "react";
 import Phaser from "phaser";
 import GameScene from "./scenes/GameScene.js";
 
-export default function PhaserGame({ room, players, blocks, level }) {
+export default function PhaserGame({
+  room,
+  players,
+  blocks,
+  level,
+}) {
   const parentRef = useRef(null);
   const sceneRef = useRef(null);
 

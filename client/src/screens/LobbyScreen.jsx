@@ -1,67 +1,54 @@
 import React, { useState } from "react";
 import "./LobbyScreen.css";
-import '@picocss/pico/css/pico.min.css';
-import '../index.css';
-import { getVolume, setVolume, getVfxEnabled, setVfxEnabled, playSound } from "../audioSettings.js";
+import {
+  getMusicVolume,
+  getSfxVolume,
+  playSound,
+  setMusicVolume,
+  setSfxVolume,
+} from "../audioSettings.js";
 
 export default function LobbyScreen({
-  name,
   lobbyCode,
-  status,
-  onNameChange,
   onLobbyCodeChange,
   onCreate,
   onJoin,
 }) {
-  const [activeView, setActiveView] = useState(null); // null | "create" | "join" | "settings"
-  const [volume, setVolumeState] = useState(getVolume());
-  const [vfxEnabled, setVfxEnabledState] = useState(getVfxEnabled());
+  const [activeView, setActiveView] = useState(null); // null | "join" | "settings"
+  const [musicVolume, setMusicVolumeState] = useState(
+    getMusicVolume()
+  );
+  const [sfxVolume, setSfxVolumeState] = useState(
+    getSfxVolume()
+  );
 
-  const handleVolumeChange = (value) => {
-    setVolumeState(value);
-    setVolume(value);
+  const handleMusicVolumeChange = (value) => {
+    setMusicVolumeState(value);
+    setMusicVolume(value);
   };
 
-  const handleVfxToggle = () => {
-    const next = !vfxEnabled;
-    setVfxEnabledState(next);
-    setVfxEnabled(next);
+  const handleSfxVolumeChange = (value) => {
+    setSfxVolumeState(value);
+    setSfxVolume(value);
   };
 
   return (
     <div className="LobbyScreenContainer">
       <button type="button" className="game-title" onClick={() => {
-          playSound("/assets/audio/UI Sounds/UI Menu Click2.wav", 0.6);
+          playSound(
+            "./assets/audio/UI Sounds/UI Menu Click2.wav",
+            "uiClick"
+          );
           setActiveView(null);
         }}
       >
         <img
-          src="/assets/images/slightly-diagonal.png"
+          src="./assets/images/slightly-diagonal.png"
           alt="Between Us"
         />
       </button>
 
       <div className="main-menu">
-
-        {activeView === "create" && (
-          <div className="menu-row">
-            <label htmlFor="name">Your Name: </label>
-            <input
-              id="name"
-              value={name}
-              onChange={(event) => onNameChange(event.target.value)}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                playSound("/assets/audio/UI Sounds/Confirm menu sound.mp3", 1);
-                onCreate();
-              }}
-            >
-              Confirm
-            </button>
-          </div>
-        )}
 
         {activeView === "join" && (
           <div className="menu-row">
@@ -74,7 +61,10 @@ export default function LobbyScreen({
             <button
               type="button"
               onClick={() => {
-                playSound("/assets/audio/UI Sounds/Confirm menu sound.mp3", 1);
+                playSound(
+                  "./assets/audio/UI Sounds/UI Menu Click2.wav",
+                  "uiClick"
+                );
                 onJoin();
               }}
             >
@@ -85,30 +75,49 @@ export default function LobbyScreen({
 
         {activeView === "settings" && (
           <div className="menu-row settings-row">
-            <label htmlFor="volume">Volume: </label>
-            <input
-              id="volume"
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={(event) => handleVolumeChange(parseFloat(event.target.value))}
-            />
-            <span>{Math.round(volume * 100)}%</span>
+            <div className="setting-control">
+              <label htmlFor="music-volume">Music: </label>
+              <input
+                id="music-volume"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={musicVolume}
+                onChange={(event) =>
+                  handleMusicVolumeChange(
+                    parseFloat(event.target.value)
+                  )
+                }
+              />
+              <span>{Math.round(musicVolume * 100)}%</span>
+            </div>
 
-            <label htmlFor="vfx-toggle">Button SFX: </label>
-            <input
-              id="vfx-toggle"
-              type="checkbox"
-              checked={vfxEnabled}
-              onChange={handleVfxToggle}
-            />
+            <div className="setting-control">
+              <label htmlFor="sfx-volume">SFX: </label>
+              <input
+                id="sfx-volume"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={sfxVolume}
+                onChange={(event) =>
+                  handleSfxVolumeChange(
+                    parseFloat(event.target.value)
+                  )
+                }
+              />
+              <span>{Math.round(sfxVolume * 100)}%</span>
+            </div>
 
             <button
               type="button"
               onClick={() => {
-                playSound("/assets/audio/UI Sounds/UI Menu Click2.wav", 0.6);
+                playSound(
+                  "./assets/audio/UI Sounds/UI Menu Click2.wav",
+                  "uiClick"
+                );
                 setActiveView(null);
               }}
             >
@@ -122,8 +131,11 @@ export default function LobbyScreen({
             <button
               type="button"
               onClick={() => {
-                playSound("/assets/audio/UI Sounds/UI Menu Click2.wav", 0.6);
-                setActiveView("create");
+                playSound(
+                  "./assets/audio/UI Sounds/UI Menu Click2.wav",
+                  "uiClick"
+                );
+                onCreate();
               }}
             >
               Create lobby
@@ -131,7 +143,10 @@ export default function LobbyScreen({
             <button
               type="button"
               onClick={() => {
-                playSound("/assets/audio/UI Sounds/UI Menu Click2.wav", 0.6);
+                playSound(
+                  "./assets/audio/UI Sounds/UI Menu Click2.wav",
+                  "uiClick"
+                );
                 setActiveView("join");
               }}
             >
@@ -140,7 +155,10 @@ export default function LobbyScreen({
             <button
               type="button"
               onClick={() => {
-                playSound("/assets/audio/UI Sounds/UI Menu Click2.wav", 0.6);
+                playSound(
+                  "./assets/audio/UI Sounds/UI Menu Click2.wav",
+                  "uiClick"
+                );
                 setActiveView("settings");
               }}
             >

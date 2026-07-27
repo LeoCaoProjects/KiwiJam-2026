@@ -1,7 +1,7 @@
 {
-  "name": "kiwijam-server",
+  "name": "between-us-server",
   "version": "1.0.0",
-  "description": "Colyseus multiplayer server for Kiwijam game",
+  "description": "Colyseus multiplayer server for Between Us",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {

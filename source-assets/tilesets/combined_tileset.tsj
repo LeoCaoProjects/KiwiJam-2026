@@ -1,5 +1,5 @@
 { "columns":30,
- "image":"combined_tileset.png",
+ "image":"../../client/public/assets/tilesets/combined_tileset.png",
  "imageheight":192,
  "imagewidth":960,
  "margin":0,

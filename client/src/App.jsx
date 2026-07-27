@@ -9,7 +9,11 @@ import {
   joinLobby,
   SERVER_URL,
 } from "./network/colyseusClient.js";
-import { getVolume, subscribeAudioSettings } from "./audioSettings.js";
+import {
+  getMixedVolume,
+  playSound,
+  subscribeAudioSettings,
+} from "./audioSettings.js";
 
 function getPlayers(room) {
   const players = [];
@@ -51,7 +55,6 @@ export default function App() {
 
   const [serverReady, setServerReady] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
-  const [name, setName] = useState("");
   const [lobbyCode, setLobbyCode] = useState("");
   const [room, setRoom] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -64,16 +67,23 @@ export default function App() {
     players.some((player) => player.slot === 2);
   const gameStarted =
     !showIntro && Boolean(room) && bothPlayersConnected;
-  let musicSource = "/assets/audio/MAIN/Menu Loop.wav";
+  let musicSource = "./assets/audio/MAIN/Menu Loop.wav";
+  let musicMix = "menuMusic";
 
-  if (gameStarted) {
-    musicSource =
-      level >= 4
-        ? "/assets/audio/MAIN/Gameplay Loop Creepier.wav"
-        : "/assets/audio/Main Gameplay Loop Updated Mix 1.wav";
+  if (gameFinished) {
+    musicSource = "./assets/audio/MAIN/Main Gameplay Loop.wav";
+    musicMix = "creditsMusic";
+  } else if (gameStarted) {
+    if (level >= 4) {
+      musicSource =
+        "./assets/audio/MAIN/Gameplay Loop Creepier.wav";
+      musicMix = "creepyMusic";
+    } else {
+      musicSource =
+        "./assets/audio/Main Gameplay Loop Updated Mix 1.wav";
+      musicMix = "gameplayMusic";
+    }
   }
-
-  const musicVolume = gameStarted ? 0.35 : 0.55;
 
   useEffect(() => {
     let cancelled = false;
@@ -122,13 +132,13 @@ export default function App() {
 
   // Keep music volume in sync with the settings slider, even mid-playback
   useEffect(() => {
-    const unsubscribe = subscribeAudioSettings(({ volume }) => {
+    const unsubscribe = subscribeAudioSettings(() => {
       if (audioRef.current) {
-        audioRef.current.volume = volume * musicVolume;
+        audioRef.current.volume = getMixedVolume(musicMix);
       }
     });
     return unsubscribe;
-  }, [musicVolume]);
+  }, [musicMix]);
 
   useEffect(() => {
     return () => roomRef.current?.leave();
@@ -141,13 +151,8 @@ export default function App() {
       return;
     }
 
-    if (gameFinished) {
-      audio.pause();
-      audio.currentTime = 0;
-      return;
-    }
-
-    audio.volume = musicVolume * getVolume();
+    audio.volume = getMixedVolume(musicMix);
+    audio.loop = !gameFinished;
     audio.src = musicSource;
     audio.load();
 
@@ -160,7 +165,7 @@ export default function App() {
         })
         .catch(() => {});
     }
-  }, [gameFinished, musicSource, musicVolume, serverReady]);
+  }, [gameFinished, musicMix, musicSource, serverReady]);
 
   function connectToRoom(nextRoom) {
     roomRef.current = nextRoom;
@@ -168,18 +173,26 @@ export default function App() {
     setBlocks([]);
     setRoom(nextRoom);
     setLobbyCode(nextRoom.roomId);
-    setLevel(0);
-    setGameFinished(false);
+    setLevel(nextRoom.state.level ?? 0);
+    setGameFinished(nextRoom.state.finished ?? false);
     setStatus("Connected to lobby.");
 
     const refreshPlayers = () => setPlayers(getPlayers(nextRoom));
     const refreshBlocks = () => setBlocks(getBlocks(nextRoom));
 
     nextRoom.onMessage("level", (nextLevel) => {
+      playSound(
+        "./assets/audio/UI Sounds/Player Join Sound.wav",
+        "playerJoin"
+      );
       setLevel(nextLevel);
     });
 
     nextRoom.onMessage("finished", () => {
+      playSound(
+        "./assets/audio/UI Sounds/Player Join Sound.wav",
+        "playerJoin"
+      );
       setGameFinished(true);
     });
 
@@ -210,7 +223,7 @@ export default function App() {
     setStatus("Creating lobby...");
 
     try {
-      const nextRoom = await createLobby(name.trim());
+      const nextRoom = await createLobby();
       connectToRoom(nextRoom);
     } catch (error) {
       setStatus(error.message || "Could not create lobby.");
@@ -226,7 +239,7 @@ export default function App() {
     setStatus("Joining lobby...");
 
     try {
-      const nextRoom = await joinLobby(lobbyCode, name.trim());
+      const nextRoom = await joinLobby(lobbyCode);
       connectToRoom(nextRoom);
     } catch (error) {
       setStatus(error.message || "Could not join that lobby.");
@@ -247,7 +260,7 @@ export default function App() {
     await activeRoom?.leave();
   }
 
-  const persistentAudio = <audio ref={audioRef} loop autoPlay />;
+  const persistentAudio = <audio ref={audioRef} autoPlay />;
   let content;
 
   if (!serverReady) {
@@ -257,13 +270,22 @@ export default function App() {
           width: "100vw",
           height: "100vh",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "black",
           color: "white",
+          padding: "2rem",
+          textAlign: "center",
         }}
       >
-        Server is loading...
+        <p style={{ fontSize: "1.5rem", marginBottom: "0.75rem" }}>
+          Waking up the game server...
+        </p>
+        <p style={{ maxWidth: "34rem", margin: 0 }}>
+          This may take up to a minute. Don&apos;t refresh. The
+          game starts automatically.
+        </p>
       </div>
     );
   } else if (gameFinished) {
@@ -286,10 +308,7 @@ export default function App() {
   } else {
     content = (
       <LobbyScreen
-        name={name}
         lobbyCode={lobbyCode}
-        status={status}
-        onNameChange={setName}
         onLobbyCodeChange={setLobbyCode}
         onCreate={create}
         onJoin={join}

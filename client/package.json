@@ -1,7 +1,7 @@
 {
-  "name": "kiwijam-client",
+  "name": "between-us-client",
   "version": "1.0.0",
-  "description": "React + Phaser client for Kiwijam game",
+  "description": "React and Phaser client for Between Us",
   "type": "module",
   "scripts": {
     "dev": "vite --host --port 5173",
@@ -10,15 +10,12 @@
   },
   "dependencies": {
     "@picocss/pico": "^2.1.1",
-    "@tailwindcss/vite": "^4.3.3",
     "colyseus.js": "^0.15.0",
     "phaser": "^4.2.1",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "tailwindcss": "^4.3.3"
+    "react-dom": "^18.3.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.0",
     "vite": "^5.3.0"
   }
 }

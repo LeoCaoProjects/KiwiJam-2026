@@ -1,4 +1,7 @@
+import { getMixedVolume } from "../../audioSettings.js";
+
 const placedBlockFrame = 15;
+const blockLifetime = 5000;
 
 export default class BuildBlock {
   constructor(scene, block, isOwner, playerSprite) {
@@ -41,8 +44,10 @@ export default class BuildBlock {
         .setDepth(11);
       this.countdownSound = scene.sound.add(
         "blockCountdownSound",
-        { volume: 1 }
+        { volume: getMixedVolume("blockCountdown") }
       );
+      this.countdownEndsAt =
+        performance.now() + blockLifetime;
       this.countdownSound.play();
       this.updateCountdown();
     }
@@ -65,7 +70,9 @@ export default class BuildBlock {
 
     const secondsLeft = Math.max(
       1,
-      Math.ceil((this.expiresAt - Date.now()) / 1000)
+      Math.ceil(
+        (this.countdownEndsAt - performance.now()) / 1000
+      )
     );
 
     this.countdown.setText(String(secondsLeft));
