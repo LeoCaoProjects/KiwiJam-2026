@@ -1,4 +1,6 @@
 const listeners = new Set();
+const typewriterBuffers = new WeakMap();
+let typewriterContext = null;
 const savedVolume = localStorage.getItem("volume");
 const oldVolume =
   savedVolume !== null ? parseFloat(savedVolume) : 0.6;
@@ -70,4 +72,80 @@ export function playSound(path, soundName = "uiClick") {
 
   sfx.volume = getMixedVolume(soundName);
   sfx.play().catch(() => {});
+}
+
+export function playTypewriterSound(character, context) {
+  let audioContext = context;
+
+  if (!audioContext) {
+    const AudioContext =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContext) {
+      return;
+    }
+
+    if (!typewriterContext) {
+      typewriterContext = new AudioContext();
+    }
+
+    audioContext = typewriterContext;
+  }
+
+  if (audioContext.state === "suspended") {
+    audioContext.resume().catch(() => {});
+    return;
+  }
+
+  if (audioContext.state !== "running") {
+    return;
+  }
+
+  if (!typewriterBuffers.has(audioContext)) {
+    const length = Math.floor(audioContext.sampleRate * 0.025);
+    const buffer = audioContext.createBuffer(
+      1,
+      length,
+      audioContext.sampleRate
+    );
+    const samples = buffer.getChannelData(0);
+
+    for (let index = 0; index < length; index += 1) {
+      const fade = 1 - index / length;
+      samples[index] =
+        (Math.random() * 2 - 1) * fade * fade;
+    }
+
+    typewriterBuffers.set(audioContext, buffer);
+  }
+
+  const source = audioContext.createBufferSource();
+  const filter = audioContext.createBiquadFilter();
+  const gain = audioContext.createGain();
+  const now = audioContext.currentTime;
+
+  source.buffer = typewriterBuffers.get(audioContext);
+  source.playbackRate.value =
+    0.92 + (character.charCodeAt(0) % 7) * 0.02;
+  filter.type = "bandpass";
+  filter.frequency.value = 1500;
+  filter.Q.value = 0.8;
+  gain.gain.setValueAtTime(
+    getMixedVolume("typing"),
+    now
+  );
+  gain.gain.exponentialRampToValueAtTime(
+    0.0001,
+    now + 0.025
+  );
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioContext.destination);
+  source.start(now);
+  source.onended = () => {
+    source.disconnect();
+    filter.disconnect();
+    gain.disconnect();
+  };
 }

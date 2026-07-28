@@ -4,10 +4,16 @@ import {
   getMusicVolume,
   getSfxVolume,
   playSound,
+  playTypewriterSound,
   setMusicVolume,
   setSfxVolume,
 } from "../audioSettings.js";
 import "./GameScreen.css";
+
+const introTitle =
+  "This screen is for your eyes, and your eyes only.";
+const introExplanation =
+  "Keep your screen hidden from the other player. You each see a different world, so describe what you see and work together.";
 
 export default function GameScreen({
   room,
@@ -22,6 +28,9 @@ export default function GameScreen({
   const gameReady = Boolean(playerOne && playerTwo);
   const hasPlayedJoinSound = useRef(false);
   const [showGame, setShowGame] = useState(false);
+  const [typedIntroTitle, setTypedIntroTitle] = useState("");
+  const [typedIntroExplanation, setTypedIntroExplanation] =
+    useState("");
   const [showAudioSettings, setShowAudioSettings] =
     useState(false);
   const [musicVolume, setMusicVolumeState] = useState(
@@ -50,7 +59,32 @@ export default function GameScreen({
   };
 
   useEffect(() => {
-    let introTimer;
+    const timers = [];
+    const intervals = [];
+
+    const typeText = (text, setText, delay, speed) => {
+      const timer = window.setTimeout(() => {
+        let character = 0;
+        const interval = window.setInterval(() => {
+          character += 1;
+          const typedCharacter = text[character - 1];
+
+          setText(text.slice(0, character));
+
+          if (/[a-z0-9]/i.test(typedCharacter)) {
+            playTypewriterSound(typedCharacter);
+          }
+
+          if (character === text.length) {
+            window.clearInterval(interval);
+          }
+        }, speed);
+
+        intervals.push(interval);
+      }, delay);
+
+      timers.push(timer);
+    };
 
     if (gameReady && !hasPlayedJoinSound.current) {
       playSound(
@@ -58,17 +92,50 @@ export default function GameScreen({
         "playerJoin"
       );
       hasPlayedJoinSound.current = true;
-      introTimer = window.setTimeout(() => {
+      setTypedIntroTitle("");
+      setTypedIntroExplanation("");
+
+      const titleSpeed = 55;
+      const explanationSpeed = 42;
+      const explanationDelay =
+        introTitle.length * titleSpeed + 700;
+      const introLength =
+        explanationDelay +
+        introExplanation.length * explanationSpeed +
+        7500;
+
+      typeText(
+        introTitle,
+        setTypedIntroTitle,
+        500,
+        titleSpeed
+      );
+      typeText(
+        introExplanation,
+        setTypedIntroExplanation,
+        explanationDelay,
+        explanationSpeed
+      );
+
+      const introTimer = window.setTimeout(() => {
         setShowGame(true);
-      }, 3000);
+      }, introLength);
+      timers.push(introTimer);
     }
 
     if (!gameReady) {
       hasPlayedJoinSound.current = false;
       setShowGame(false);
+      setTypedIntroTitle("");
+      setTypedIntroExplanation("");
     }
 
-    return () => window.clearTimeout(introTimer);
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      intervals.forEach((interval) =>
+        window.clearInterval(interval)
+      );
+    };
   }, [gameReady]);
 
   if (gameReady && showGame) {
@@ -143,7 +210,14 @@ export default function GameScreen({
   if (gameReady) {
     return (
       <div className="GameIntro">
-        <p>You're awake, but not alone</p>
+        <div className="GameIntroContent">
+          <p className="GameIntroTitle">
+            {typedIntroTitle}
+          </p>
+          <p className="GameIntroExplanation">
+            {typedIntroExplanation}
+          </p>
+        </div>
       </div>
     );
   }

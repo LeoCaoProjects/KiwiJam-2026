@@ -24,9 +24,21 @@
   text-align: center;
 }
 
-.GameIntro p {
+.GameIntroContent {
+  width: min(90vw, 52rem);
+}
+
+.GameIntroTitle {
   margin: 0;
   font-size: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.GameIntroExplanation {
+  min-height: 4.5rem;
+  margin: 1.5rem 0 0;
+  font-size: clamp(0.85rem, 1.5vw, 1.15rem);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .PhaserGameContainer {

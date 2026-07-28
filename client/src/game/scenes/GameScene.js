@@ -1,7 +1,10 @@
 import Phaser from "phaser";
 import Player from "../objects/Player.js";
 import BuildBlock from "../objects/BuildBlock.js";
-import { getMixedVolume } from "../../audioSettings.js";
+import {
+  getMixedVolume,
+  playTypewriterSound,
+} from "../../audioSettings.js";
 import {
   createPlayground,
   preloadPlayground,
@@ -69,7 +72,6 @@ export default class GameScene extends Phaser.Scene {
     this.dialogueIndex = -1;
     this.dialogueReady = false;
     this.dialoguePlaying = false;
-    this.typewriterBuffer = null;
   }
 
   preload() {
@@ -325,7 +327,10 @@ export default class GameScene extends Phaser.Scene {
         const typedCharacter = line[character - 1];
 
         if (/[a-z0-9]/i.test(typedCharacter)) {
-          this.playTypewriterSound(typedCharacter);
+          playTypewriterSound(
+            typedCharacter,
+            this.sound.context
+          );
         }
 
         if (character === line.length) {
@@ -360,62 +365,6 @@ export default class GameScene extends Phaser.Scene {
       this.dialogueReady = true;
       this.showNextDialogueLine();
     });
-  }
-
-  playTypewriterSound(character) {
-    const context = this.sound.context;
-
-    if (!context || context.state !== "running") {
-      return;
-    }
-
-    if (!this.typewriterBuffer) {
-      const length = Math.floor(context.sampleRate * 0.025);
-      const buffer = context.createBuffer(
-        1,
-        length,
-        context.sampleRate
-      );
-      const samples = buffer.getChannelData(0);
-
-      for (let index = 0; index < length; index += 1) {
-        const fade = 1 - index / length;
-        samples[index] =
-          (Math.random() * 2 - 1) * fade * fade;
-      }
-
-      this.typewriterBuffer = buffer;
-    }
-
-    const source = context.createBufferSource();
-    const filter = context.createBiquadFilter();
-    const gain = context.createGain();
-    const now = context.currentTime;
-
-    source.buffer = this.typewriterBuffer;
-    source.playbackRate.value =
-      0.92 + (character.charCodeAt(0) % 7) * 0.02;
-    filter.type = "bandpass";
-    filter.frequency.value = 1500;
-    filter.Q.value = 0.8;
-    gain.gain.setValueAtTime(
-      getMixedVolume("typing"),
-      now
-    );
-    gain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      now + 0.025
-    );
-
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(context.destination);
-    source.start(now);
-    source.onended = () => {
-      source.disconnect();
-      filter.disconnect();
-      gain.disconnect();
-    };
   }
 
   createParticleTextures() {
