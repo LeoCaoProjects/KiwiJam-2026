@@ -24,8 +24,20 @@ const treeTiles = [
   121, 122, 123, 124, 125, 126,
   151, 152, 153, 154, 155, 156,
 ];
+const nonCollisionTiles = [
+  -1,
+  17,
+  18,
+  46,
+  ...grassTopTiles,
+  ...treeTiles,
+];
 
 export const spikeTiles = [79, 80];
+const visibleNonCollisionTiles = [
+  ...nonCollisionTiles,
+  ...spikeTiles,
+];
 
 function getLevelPair(level) {
   return levelPairs[level] || levelPairs[0];
@@ -96,32 +108,59 @@ function fillEndWall(world) {
   }
 }
 
+function hideTiles(layer, indexes) {
+  const hiddenIndexes = new Set(indexes);
+
+  layer.forEachTile((tile) => {
+    if (hiddenIndexes.has(tile.index)) {
+      tile.visible = false;
+    }
+  });
+}
+
+function showOnlyTiles(layer, indexes) {
+  const visibleIndexes = new Set(indexes);
+
+  layer.forEachTile((tile) => {
+    tile.visible = visibleIndexes.has(tile.index);
+  });
+}
+
 export function createPlayground(scene, level, playerSlot) {
   const [levelA, levelB] = getLevelPair(level);
   const collisionMapKey = playerSlot === 2 ? levelB : levelA;
   const visibleMapKey = playerSlot === 2 ? levelA : levelB;
   const visibleWorld = createLayer(scene, visibleMapKey);
+  const fadedVisibleWorld = createLayer(scene, visibleMapKey);
+  const visibleSpikes = createLayer(scene, visibleMapKey);
   const collisionWorld = createLayer(scene, collisionMapKey);
 
   if (closedEndLevels.includes(level)) {
     fillEndWall(visibleWorld);
+    fillEndWall(fadedVisibleWorld);
+    fillEndWall(visibleSpikes);
     fillEndWall(collisionWorld);
   }
 
-  collisionWorld.layer.setCollisionByExclusion([
-    -1,
-    17,
-    18,
-    46,
-    ...grassTopTiles,
-    ...treeTiles,
-  ]);
+  visibleWorld.layer.setCollisionByExclusion(
+    visibleNonCollisionTiles
+  );
+  collisionWorld.layer.setCollisionByExclusion(nonCollisionTiles);
+  hideTiles(visibleWorld.layer, spikeTiles);
+  hideTiles(fadedVisibleWorld.layer, spikeTiles);
+  showOnlyTiles(visibleSpikes.layer, spikeTiles);
   collisionWorld.layer.setVisible(false);
+  visibleSpikes.layer.setDepth(-1);
   visibleWorld.layer.setDepth(10);
+  fadedVisibleWorld.layer
+    .setAlpha(0.58)
+    .setDepth(10)
+    .setVisible(false);
 
   return {
     map: visibleWorld.map,
     platforms: visibleWorld.layer,
+    fadedPlatforms: fadedVisibleWorld.layer,
     collisions: collisionWorld.layer,
     mapOffsetY,
   };

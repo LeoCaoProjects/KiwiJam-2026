@@ -25,23 +25,51 @@ export default class BuildBlock {
         this.gameObject
       );
     } else {
-      this.gameObject = scene.add
-        .image(
-          block.x + 16,
-          block.y + 16,
-          "placedBlock",
-          placedBlockFrame
+      const centerX = block.x + 16;
+      const centerY = block.y + 16;
+
+      this.outerGlow = scene.add
+        .rectangle(
+          centerX,
+          centerY,
+          32,
+          32,
+          0x8edcff,
+          0.12
         )
+        .setStrokeStyle(1, 0xdff8ff, 0.35)
         .setDepth(10);
+      this.gameObject = scene.add
+        .rectangle(
+          centerX,
+          centerY,
+          26,
+          26,
+          0x123f58,
+          0.72
+        )
+        .setStrokeStyle(2, 0xdff8ff, 0.9)
+        .setDepth(11);
+      this.pulse = scene.tweens.add({
+        targets: this.outerGlow,
+        scale: 1.08,
+        alpha: 0.5,
+        duration: 650,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut",
+      });
       this.countdown = scene.add
-        .text(block.x + 16, block.y + 16, "5", {
+        .text(centerX, centerY, "5", {
           fontFamily: "Cinzel, serif",
-          fontSize: "18px",
-          color: "#000000",
+          fontSize: "16px",
+          color: "#ffffff",
           fontStyle: "bold",
         })
         .setOrigin(0.5)
-        .setDepth(11);
+        .setStroke("#123f58", 3)
+        .setShadow(0, 0, "#8edcff", 6)
+        .setDepth(13);
       this.countdownSound = scene.sound.add(
         "blockCountdownSound",
         { volume: getMixedVolume("blockCountdown") }
@@ -80,6 +108,8 @@ export default class BuildBlock {
 
   destroy() {
     this.collider?.destroy();
+    this.pulse?.destroy();
+    this.outerGlow?.destroy();
     this.countdown?.destroy();
     this.countdownSound?.stop();
     this.countdownSound?.destroy();

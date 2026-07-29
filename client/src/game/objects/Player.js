@@ -1,6 +1,7 @@
 export default class Player {
   constructor(scene, sessionId, x, y) {
     this.sessionId = sessionId;
+    this.dimmed = false;
     this.halo = scene.add
       .circle(x, y, 24, 0x8edcff, 0.12)
       .setStrokeStyle(1, 0xdff8ff, 0.35);
@@ -64,6 +65,25 @@ export default class Player {
   updateVisuals() {
     this.halo.setPosition(this.sprite.x, this.sprite.y);
     this.innerGlow.setPosition(this.sprite.x, this.sprite.y);
+  }
+
+  setDimmed(dimmed) {
+    if (this.dimmed === dimmed) {
+      return;
+    }
+
+    this.dimmed = dimmed;
+    this.sprite.setAlpha(dimmed ? 0.48 : 1);
+    this.innerGlow.setAlpha(dimmed ? 0.35 : 1);
+    this.halo.setVisible(!dimmed);
+    this.emitters.forEach((emitter) => {
+      if (dimmed) {
+        emitter.stop();
+      } else {
+        emitter.start();
+        emitter.emitParticle();
+      }
+    });
   }
 
   destroy() {

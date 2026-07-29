@@ -54,6 +54,7 @@ class GameRoom extends Room {
       if (
         !player ||
         this.state.players.size !== 2 ||
+        this.state.level < 1 ||
         this.state.blocks.has(client.sessionId) ||
         Date.now() <
           (this.blockCooldowns.get(client.sessionId) || 0) ||

@@ -1,60 +1,84 @@
 # Between Us
 
-A two-player cooperative platformer made for KiwiJam 2026. The
-frontend uses React and Phaser, and the multiplayer server uses
-Colyseus and Node.js.
+> *"Two lovers wake up in the same world but not the same reality.*
+>
+> *What's solid on your screen might not be solid for them. What
+> blocks their path might be invisible to yours. The only way through
+> is to talk, to trust what the other person tells you, even when you
+> can't see it yourself.*
+>
+> *Between Us is a short platformer for two players about two minds
+> trying to stay close. Six chapters, one love story, with something
+> stranger folding underneath.*
+>
+> *You'll need a friend for this one. Neither of you can finish it
+> alone."*
 
-## Install
+Created for KiwiJam 2026.
 
-Requires Node.js 18 or newer.
+[![Play on itch.io](https://img.shields.io/badge/PLAY_ON_ITCH.IO-fa5c5c?style=for-the-badge&logo=itchdotio&logoColor=white)](https://leocaoprojects.itch.io/between-us)
+
+## About
+
+Between Us is a platform game for two people. You and your partner
+play through the same six chapters, but you each see a different
+version of the world.
+
+The platforms you stand on appear on your partner's screen instead
+of yours, so you have to talk and guide each other.
+
+<p align="center"><em>Player 1's world on the left. Player 2's world on the right.</em></p>
+
+<p align="center">
+  <img src="screenshots/player-one-view.png" width="49%" alt="Player 1">
+  <img src="screenshots/player-two-view.png" width="49%" alt="Player 2">
+</p>
+
+## Controls
+
+- Move with `A` and `D`, or the left and right arrow keys
+- Jump with `W` or the up arrow key
+- Ping a location for your partner with left click
+- Place a temporary block with right click, or hover and press `E`
+- Reset both players with `R`
+
+## Built with
+
+- React
+- Phaser
+- Colyseus
+- Node.js
+- Vite
+- Tiled
+
+## Running locally
+
+Node.js 18 or newer is required.
+
+Install and start the server:
 
 ```bash
 cd server
 npm install
-
-cd ../client
-npm install
-```
-
-## Run locally
-
-Start the server:
-
-```bash
-cd server
 npm start
 ```
 
-Start the client in a second terminal:
+In a second terminal, install and start the client:
 
 ```bash
 cd client
+npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` in two browser windows. Create a lobby
-in one window, then enter its lobby code in the other.
+Open `http://localhost:5173` in two browser windows. Create a lobby in
+one window, then join it from the other using the lobby code.
 
-## Project structure
+## Credits
 
-```text
-kiwijam-game/
-|-- client/
-|   |-- public/assets/   Game levels, art, audio and video
-|   `-- src/             React and Phaser source
-|-- server/
-|   `-- src/             Colyseus server source
-|-- source-assets/       Preserved editor files and unused media
-`-- README.md
-```
-
-The client uses localhost automatically during local development. To
-connect through a local network, create `client/.env` and set:
-
-```env
-VITE_SERVER_IP=192.168.1.5
-VITE_SERVER_PORT=2567
-```
-
-For a deployed client, set `VITE_SERVER_URL` in the hosting platform
-to the secure WebSocket URL of the deployed server.
+- Dan Martin: Music and sound effects
+- [Leo Cao](https://github.com/LeoCaoProjects): Developer
+- [Fateh Bhular](https://github.com/fatehbhular): Designer
+- [Shawn Lee](https://github.com/ShawnLeeyz): Developer
+- Shyam Sharma: Narration and animation
+- [Wei-Xiang Yong](https://github.com/LongNightOfSolace2552): Developer and designer

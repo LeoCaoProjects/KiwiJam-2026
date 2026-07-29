@@ -30,7 +30,6 @@ const chapterDialogue = [
     "Something will place where you decide.",
     "You won't see it land, but they're not blind.",
     "So don't be in shock. Right click to place a block.",
-    "Don't wait too long. Five seconds, then gone.",
   ],
   [
     "I've never said this to anyone before,",
@@ -72,6 +71,9 @@ export default class GameScene extends Phaser.Scene {
     this.dialogueIndex = -1;
     this.dialogueReady = false;
     this.dialoguePlaying = false;
+    this.terrainRevealActive = false;
+    this.wasMovingUp = false;
+    this.hiddenCeilingContact = null;
   }
 
   preload() {
@@ -124,6 +126,7 @@ export default class GameScene extends Phaser.Scene {
     this.dialogueIndex = -1;
     this.dialogueReady = false;
     this.dialoguePlaying = false;
+    this.terrainRevealActive = false;
 
     const localPlayerData = this.players.find(
       (player) => player.sessionId === this.room.sessionId
@@ -136,17 +139,19 @@ export default class GameScene extends Phaser.Scene {
 
     this.map = level.map;
     this.platforms = level.platforms;
+    this.fadedPlatforms = level.fadedPlatforms;
     this.collisions = level.collisions;
     this.mapOffsetY = level.mapOffsetY;
     this.spawnTile = this.collisions.findByIndex(17);
     this.goalTile = this.collisions.findByIndex(18);
     this.createBackground();
     this.createChapterLabel();
+    this.createTutorialGuide();
     this.createChapterDialogue();
     this.createParticleTextures();
     this.createGoalParticles();
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.keys = this.input.keyboard.addKeys("W,A,S,D,R");
+    this.keys = this.input.keyboard.addKeys("W,A,S,D,R,E");
     this.physics.world.setBounds(
       0,
       0,
@@ -155,6 +160,8 @@ export default class GameScene extends Phaser.Scene {
     );
     this.physics.world.setBoundsCollision(true, true, true, false);
     this.drawPlayers();
+    this.createTerrainReveal();
+    this.createHiddenSurfaceOutline();
     this.drawBlocks();
     this.input.on("pointerdown", this.handlePointerDown, this);
     this.removeResetListener = this.room.onMessage("reset", () => {
@@ -186,6 +193,8 @@ export default class GameScene extends Phaser.Scene {
         this
       );
       this.destroyBlocks();
+      this.destroyTerrainReveal();
+      this.hiddenSurfaceOutline.destroy();
     });
 
     const camera = this.cameras.main;
@@ -357,6 +366,7 @@ export default class GameScene extends Phaser.Scene {
           ease: "Sine.easeInOut",
           onComplete: () => {
             this.dialoguePlaying = false;
+            this.startTutorialGuide();
           },
         });
         return;
@@ -367,12 +377,501 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
+  createTutorialGuide() {
+    if (this.level > 1) {
+      return;
+    }
+
+    this.tutorialGuidePanel = this.add
+      .rectangle(1030, 95, 460, 126, 0x04111d, 0.88)
+      .setStrokeStyle(1, 0x8edcff, 0.4)
+      .setScrollFactor(0)
+      .setDepth(250)
+      .setVisible(false);
+    this.tutorialGuideAccent = this.add
+      .rectangle(810, 95, 3, 102, 0x8edcff, 0.9)
+      .setScrollFactor(0)
+      .setDepth(251)
+      .setVisible(false);
+    this.tutorialGuideTitle = this.add
+      .text(824, 43, "TUTORIAL", {
+        fontFamily: "Cinzel, serif",
+        fontSize: "13px",
+        color: "#8edcff",
+      })
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(252)
+      .setVisible(false);
+    this.tutorialGuideText = this.add
+      .text(824, 70, "", {
+        fontFamily: "Cinzel, serif",
+        fontSize: "14px",
+        color: "#e8f7ff",
+        align: "left",
+        lineSpacing: 6,
+        wordWrap: { width: 410, useAdvancedWrap: true },
+      })
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(252)
+      .setVisible(false);
+    this.tutorialPingText = this.add
+      .text(824, 139, "LEFT CLICK TO PING", {
+        fontFamily: "Cinzel, serif",
+        fontSize: "11px",
+        color: "#a9bac4",
+      })
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(252)
+      .setVisible(false);
+  }
+
+  startTutorialGuide() {
+    if (this.level === 0) {
+      this.showTutorialGuide(
+        "These platforms belong to your partner.\nYour own path lives only on their screen.\nTell them what you see. Ask where to step."
+      );
+      return;
+    }
+
+    if (this.level === 1) {
+      this.showTutorialGuide(
+        "Hover, then press E, or right click, to place a block.\nOnly your partner sees it. Only you can stand on it.\nAsk where it landed. It fades after five seconds."
+      );
+    }
+  }
+
+  showTutorialGuide(text) {
+    if (!this.tutorialGuidePanel) {
+      return;
+    }
+
+    this.tutorialGuideText.setText(text);
+    this.tutorialGuidePanel.setVisible(true);
+    this.tutorialGuideAccent.setVisible(true);
+    this.tutorialGuideTitle.setVisible(true);
+    this.tutorialGuideText.setVisible(true);
+    this.tutorialPingText.setVisible(true);
+  }
+
   createParticleTextures() {
     this.createParticleTexture("playerParticle", 0xffffff, 5);
     this.createParticleTexture("playerGlow", 0x8edcff, 4);
     this.createParticleTexture("playerSpark", 0xdff8ff, 2);
     this.createParticleTexture("goalParticle", 0x62ff8a, 4);
     this.createParticleTexture("goalGlow", 0xc8ffd5, 3);
+  }
+
+  createTerrainReveal() {
+    this.terrainRevealOutsideShape = this.make.graphics({
+      add: false,
+    });
+    this.terrainRevealInsideShape = this.make.graphics({
+      add: false,
+    });
+    this.terrainRevealOutsideMask =
+      this.terrainRevealOutsideShape.createGeometryMask();
+    this.terrainRevealInsideMask =
+      this.terrainRevealInsideShape.createGeometryMask();
+  }
+
+  updateTerrainReveal(sprite) {
+    const body = sprite.body;
+    const startX = Math.floor(body.left / 32);
+    const endX = Math.floor(body.right / 32);
+    const startY = Math.floor(
+      (body.top - this.mapOffsetY) / 32
+    );
+    const endY = Math.floor(
+      (body.bottom - this.mapOffsetY) / 32
+    );
+    let behindTerrain = false;
+
+    for (let tileY = startY; tileY <= endY; tileY += 1) {
+      for (let tileX = startX; tileX <= endX; tileX += 1) {
+        const tile = this.platforms.getTileAt(tileX, tileY);
+
+        if (!tile || tile.index === -1) {
+          continue;
+        }
+
+        if (!tile.collides) {
+          continue;
+        }
+
+        const left = tile.pixelX;
+        const right = left + tile.width;
+        const top = tile.pixelY + this.mapOffsetY;
+        const bottom = top + tile.height;
+
+        if (
+          body.right <= left ||
+          body.left >= right ||
+          body.bottom <= top ||
+          body.top >= bottom
+        ) {
+          continue;
+        }
+
+        behindTerrain = true;
+        break;
+      }
+
+      if (behindTerrain) {
+        break;
+      }
+    }
+
+    if (!behindTerrain) {
+      this.clearTerrainReveal();
+      return;
+    }
+
+    this.localPlayer?.setDimmed(true);
+
+    const radius = 30;
+
+    this.terrainRevealOutsideShape
+      .clear()
+      .beginPath()
+      .fillRect(
+        0,
+        0,
+        this.map.widthInPixels,
+        this.map.heightInPixels
+      )
+      .moveTo(sprite.x + radius, sprite.y)
+      .arc(
+        sprite.x,
+        sprite.y,
+        radius,
+        0,
+        Math.PI * 2,
+        true
+      )
+      .closePath();
+    this.terrainRevealInsideShape
+      .clear()
+      .fillCircle(sprite.x, sprite.y, radius);
+
+    if (!this.terrainRevealActive) {
+      this.platforms.setMask(this.terrainRevealOutsideMask);
+      this.fadedPlatforms
+        .setMask(this.terrainRevealInsideMask)
+        .setVisible(true);
+      this.terrainRevealActive = true;
+    }
+  }
+
+  clearTerrainReveal() {
+    this.localPlayer?.setDimmed(false);
+
+    if (this.terrainRevealActive) {
+      this.platforms.clearMask();
+      this.fadedPlatforms.clearMask().setVisible(false);
+      this.terrainRevealActive = false;
+    }
+  }
+
+  destroyTerrainReveal() {
+    this.clearTerrainReveal();
+    this.terrainRevealOutsideMask?.destroy();
+    this.terrainRevealInsideMask?.destroy();
+    this.terrainRevealOutsideShape?.destroy();
+    this.terrainRevealInsideShape?.destroy();
+  }
+
+  createHiddenSurfaceOutline() {
+    this.hiddenSurfaceOutline = this.add
+      .graphics()
+      .setDepth(9);
+  }
+
+  isOwnerBlockAt(worldX, worldY) {
+    for (const block of this.blockObjects.values()) {
+      const body = block.gameObject?.body;
+
+      if (
+        block.isOwner &&
+        body &&
+        worldX >= body.left &&
+        worldX <= body.right &&
+        worldY >= body.top &&
+        worldY <= body.bottom
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  isHiddenSurfaceAt(worldX, worldY) {
+    const tileX = Math.floor(worldX / 32);
+    const tileY = Math.floor(
+      (worldY - this.mapOffsetY) / 32
+    );
+    const hiddenTile = this.collisions.getTileAt(tileX, tileY);
+
+    if (
+      !hiddenTile?.collides &&
+      !this.isOwnerBlockAt(worldX, worldY)
+    ) {
+      return false;
+    }
+
+    const visibleTile = this.platforms.getTileAt(tileX, tileY);
+
+    return !visibleTile?.collides;
+  }
+
+  getPointAlongSurface(points, progress) {
+    const lengths = [];
+    let totalLength = 0;
+
+    for (let index = 1; index < points.length; index += 1) {
+      const length = Phaser.Math.Distance.Between(
+        points[index - 1].x,
+        points[index - 1].y,
+        points[index].x,
+        points[index].y
+      );
+
+      lengths.push(length);
+      totalLength += length;
+    }
+
+    let remaining = totalLength * progress;
+
+    for (let index = 0; index < lengths.length; index += 1) {
+      if (remaining <= lengths[index]) {
+        const amount = remaining / lengths[index];
+
+        return {
+          x: Phaser.Math.Linear(
+            points[index].x,
+            points[index + 1].x,
+            amount
+          ),
+          y: Phaser.Math.Linear(
+            points[index].y,
+            points[index + 1].y,
+            amount
+          ),
+        };
+      }
+
+      remaining -= lengths[index];
+    }
+
+    return points[points.length - 1];
+  }
+
+  drawHiddenSurfacePath(points) {
+    const pulse =
+      0.12 + (Math.sin(this.time.now / 240) + 1) * 0.03;
+    const shimmer =
+      0.15 +
+      ((Math.sin(this.time.now / 420) + 1) / 2) * 0.7;
+    const shimmerPoint = this.getPointAlongSurface(
+      points,
+      shimmer
+    );
+
+    this.hiddenSurfaceOutline
+      .lineStyle(7, 0x8edcff, pulse)
+      .beginPath()
+      .moveTo(points[0].x, points[0].y);
+
+    for (let index = 1; index < points.length; index += 1) {
+      this.hiddenSurfaceOutline.lineTo(
+        points[index].x,
+        points[index].y
+      );
+    }
+
+    this.hiddenSurfaceOutline
+      .strokePath()
+      .lineStyle(3, 0xdff8ff, 0.78)
+      .beginPath()
+      .moveTo(points[0].x, points[0].y);
+
+    for (let index = 1; index < points.length; index += 1) {
+      this.hiddenSurfaceOutline.lineTo(
+        points[index].x,
+        points[index].y
+      );
+    }
+
+    this.hiddenSurfaceOutline.strokePath();
+
+    points.forEach((point) => {
+      this.hiddenSurfaceOutline
+        .fillStyle(0x8edcff, pulse)
+        .fillCircle(point.x, point.y, 3.5)
+        .fillStyle(0xdff8ff, 0.78)
+        .fillCircle(point.x, point.y, 1.5);
+    });
+
+    this.hiddenSurfaceOutline
+      .fillStyle(0xffffff, 0.85)
+      .fillCircle(shimmerPoint.x, shimmerPoint.y, 2);
+  }
+
+  updateHiddenSurfaceOutline(sprite) {
+    const body = sprite.body;
+    const halfLine = 18;
+    const groundContact =
+      body.blocked.down || body.touching.down;
+    const groundHidden =
+      groundContact &&
+      [
+        body.left + 2,
+        sprite.x,
+        body.right - 2,
+      ].some((x) =>
+        this.isHiddenSurfaceAt(x, body.bottom + 1)
+      );
+
+    this.hiddenSurfaceOutline.clear();
+
+    const pressingLeft =
+      !this.dialoguePlaying &&
+      (this.cursors.left.isDown || this.keys.A.isDown);
+    const pressingRight =
+      !this.dialoguePlaying &&
+      (this.cursors.right.isDown || this.keys.D.isDown);
+    const wallSampleY = [
+      body.top + 2,
+      sprite.y,
+      body.bottom - 2,
+    ];
+    const ceilingHiddenNow =
+      this.wasMovingUp &&
+      (body.blocked.up || body.touching.up) &&
+      [
+        body.left + 2,
+        sprite.x,
+        body.right - 2,
+      ].some((x) =>
+        this.isHiddenSurfaceAt(x, body.top - 1)
+      );
+
+    if (ceilingHiddenNow) {
+      this.hiddenCeilingContact = {
+        x: sprite.x,
+        y: body.top,
+        until: this.time.now + 220,
+      };
+    } else if (
+      this.hiddenCeilingContact &&
+      this.time.now > this.hiddenCeilingContact.until
+    ) {
+      this.hiddenCeilingContact = null;
+    }
+
+    const leftHidden =
+      pressingLeft &&
+      (body.blocked.left || body.touching.left) &&
+      wallSampleY.some((y) =>
+        this.isHiddenSurfaceAt(body.left - 1, y)
+      );
+    const rightHidden =
+      pressingRight &&
+      (body.blocked.right || body.touching.right) &&
+      wallSampleY.some((y) =>
+        this.isHiddenSurfaceAt(body.right + 1, y)
+      )
+    const groundY = body.bottom;
+    const topY = sprite.y - halfLine;
+    const ceilingCanJoin = Boolean(
+      this.hiddenCeilingContact
+    );
+    const ceilingY = this.hiddenCeilingContact?.y;
+    let leftDrawn = false;
+    let rightDrawn = false;
+
+    if (groundHidden && leftHidden && rightHidden) {
+      this.drawHiddenSurfacePath([
+        { x: body.left, y: topY },
+        { x: body.left, y: groundY },
+        { x: body.right, y: groundY },
+        { x: body.right, y: topY },
+      ]);
+      leftDrawn = true;
+      rightDrawn = true;
+    } else if (groundHidden && leftHidden) {
+      this.drawHiddenSurfacePath([
+        { x: body.left, y: topY },
+        { x: body.left, y: groundY },
+        { x: sprite.x + halfLine, y: groundY },
+      ]);
+      leftDrawn = true;
+    } else if (groundHidden && rightHidden) {
+      this.drawHiddenSurfacePath([
+        { x: sprite.x - halfLine, y: groundY },
+        { x: body.right, y: groundY },
+        { x: body.right, y: topY },
+      ]);
+      rightDrawn = true;
+    } else if (groundHidden) {
+      this.drawHiddenSurfacePath([
+        { x: sprite.x - halfLine, y: groundY },
+        { x: sprite.x + halfLine, y: groundY },
+      ]);
+    }
+
+    if (ceilingCanJoin && leftHidden && rightHidden) {
+      this.drawHiddenSurfacePath([
+        { x: body.left, y: sprite.y + halfLine },
+        { x: body.left, y: ceilingY },
+        { x: body.right, y: ceilingY },
+        { x: body.right, y: sprite.y + halfLine },
+      ]);
+      leftDrawn = true;
+      rightDrawn = true;
+    } else if (ceilingCanJoin && leftHidden) {
+      this.drawHiddenSurfacePath([
+        { x: body.left, y: sprite.y + halfLine },
+        { x: body.left, y: ceilingY },
+        { x: sprite.x + halfLine, y: ceilingY },
+      ]);
+      leftDrawn = true;
+    } else if (ceilingCanJoin && rightHidden) {
+      this.drawHiddenSurfacePath([
+        { x: sprite.x - halfLine, y: ceilingY },
+        { x: body.right, y: ceilingY },
+        { x: body.right, y: sprite.y + halfLine },
+      ]);
+      rightDrawn = true;
+    } else if (this.hiddenCeilingContact) {
+      this.drawHiddenSurfacePath([
+        {
+          x: this.hiddenCeilingContact.x - halfLine,
+          y: this.hiddenCeilingContact.y,
+        },
+        {
+          x: this.hiddenCeilingContact.x + halfLine,
+          y: this.hiddenCeilingContact.y,
+        },
+      ]);
+    }
+
+    if (leftHidden && !leftDrawn) {
+      this.drawHiddenSurfacePath([
+        { x: body.left, y: sprite.y - halfLine },
+        { x: body.left, y: sprite.y + halfLine },
+      ]);
+    }
+
+    if (rightHidden && !rightDrawn) {
+      this.drawHiddenSurfacePath([
+        { x: body.right, y: sprite.y - halfLine },
+        { x: body.right, y: sprite.y + halfLine },
+      ]);
+    }
   }
 
   createParticleTexture(key, color, size) {
@@ -434,8 +933,12 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
+    this.updateTerrainReveal(sprite);
+    this.updateHiddenSurfaceOutline(sprite);
+
     if (this.dialoguePlaying) {
       sprite.body.setVelocityX(0);
+      this.wasMovingUp = sprite.body.velocity.y < -1;
 
       if (time - this.lastMoveSent >= 50) {
         this.room.send("move", {
@@ -450,6 +953,10 @@ export default class GameScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
       this.room.send("reset");
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keys.E)) {
+      this.placeBlock(this.input.activePointer);
     }
 
     if (
@@ -517,6 +1024,8 @@ export default class GameScene extends Phaser.Scene {
       this.room.send("move", { x: sprite.x, y: sprite.y });
       this.lastMoveSent = time;
     }
+
+    this.wasMovingUp = sprite.body.velocity.y < -1;
   }
 
   handlePointerDown(pointer) {
@@ -542,6 +1051,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   placeBlock(pointer) {
+    if (this.level < 1) {
+      return;
+    }
+
     const tileX = Math.floor(pointer.worldX / 32);
     const tileY = Math.floor((pointer.worldY - this.mapOffsetY) / 32);
 
@@ -699,6 +1212,8 @@ export default class GameScene extends Phaser.Scene {
       this.touchingGoal = false;
       this.fallResetSent = false;
       this.spikeResetSent = false;
+      this.wasMovingUp = false;
+      this.hiddenCeilingContact = null;
     }
   }
 
@@ -789,6 +1304,7 @@ export default class GameScene extends Phaser.Scene {
         block.ownerSessionId,
         new BuildBlock(this, block, isOwner, localSprite)
       );
+
     });
 
     this.blockObjects.forEach((block, ownerSessionId) => {
