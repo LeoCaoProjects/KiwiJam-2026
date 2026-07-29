@@ -14,7 +14,8 @@
 > *You'll need a friend for this one. Neither of you can finish it
 > alone."*
 
-Created for KiwiJam 2026.
+Created for KiwiJam 2026, a 48 hour game jam hosted by the University
+of Auckland Game Developers Guild. The theme was **Entanglement**.
 
 [![Play on itch.io](https://img.shields.io/badge/PLAY_ON_ITCH.IO-fa5c5c?style=for-the-badge&logo=itchdotio&logoColor=white)](https://leocaoprojects.itch.io/between-us)
 
@@ -27,12 +28,12 @@ version of the world.
 The platforms you stand on appear on your partner's screen instead
 of yours, so you have to talk and guide each other.
 
-<p align="center"><em>Player 1's world on the left. Player 2's world on the right.</em></p>
-
 <p align="center">
   <img src="screenshots/player-one-view.png" width="49%" alt="Player 1">
   <img src="screenshots/player-two-view.png" width="49%" alt="Player 2">
 </p>
+
+<p align="center"><em>Player 1 sees one path on the left. Player 2 sees another on the right.</em></p>
 
 ## Controls
 
@@ -77,8 +78,8 @@ one window, then join it from the other using the lobby code.
 ## Credits
 
 - Dan Martin: Music and sound effects
-- [Leo Cao](https://github.com/LeoCaoProjects): Developer
-- [Fateh Bhular](https://github.com/fatehbhular): Designer
-- [Shawn Lee](https://github.com/ShawnLeeyz): Developer
+- Leo Cao ([@LeoCaoProjects](https://github.com/LeoCaoProjects)): Developer
+- Fateh Bhular ([@fatehbhular](https://github.com/fatehbhular)): Designer
+- Shawn Lee ([@ShawnLeeyz](https://github.com/ShawnLeeyz)): Developer
 - Shyam Sharma: Narration and animation
-- [Wei-Xiang Yong](https://github.com/LongNightOfSolace2552): Developer and designer
+- Wei-Xiang Yong ([@LongNightOfSolace2552](https://github.com/LongNightOfSolace2552)): Developer and designer
