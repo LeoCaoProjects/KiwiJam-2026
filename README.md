@@ -14,8 +14,8 @@
 > *You'll need a friend for this one. Neither of you can finish it
 > alone."*
 
-Created for KiwiJam 2026, a 48 hour game jam hosted by the University
-of Auckland Game Developers Guild. The theme was **Entanglement**.
+Created in 48 hours for KiwiJam 2026, New Zealand's annual game jam.
+The theme was **Entanglement**.
 
 [![Play on itch.io](https://img.shields.io/badge/PLAY_ON_ITCH.IO-fa5c5c?style=for-the-badge&logo=itchdotio&logoColor=white)](https://leocaoprojects.itch.io/between-us)
 
